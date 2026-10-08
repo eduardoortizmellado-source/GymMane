@@ -52,12 +52,30 @@ class GymManeWatchView(context: Context) : View(context) {
 
     fun refreshNow() {
         state = WearUiStateStore.read(context)
+        if (state.mode == WearMode.SUMMARY && summaryHasExpired(state)) {
+            state = state.copy(
+                mode = WearMode.READY,
+                phase = "idle",
+                exerciseName = "",
+                setIndex = 0,
+                setCount = 0,
+                phaseStartedAt = 0L,
+                restEndsAt = 0L,
+                message = ""
+            )
+            WearUiStateStore.write(context, state)
+        }
         val keepAwake = state.running && System.currentTimeMillis() - state.updatedAt < 15_000L
         if (lastKeepAwake != keepAwake) {
             lastKeepAwake = keepAwake
             onRunningChanged?.invoke(keepAwake)
         }
         invalidate()
+    }
+
+    private fun summaryHasExpired(value: WearUiState): Boolean {
+        if (value.completedAt <= 0L) return true
+        return System.currentTimeMillis() - value.completedAt >= SUMMARY_VISIBLE_MS
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -317,5 +335,9 @@ class GymManeWatchView(context: Context) : View(context) {
         super.performClick()
         onPrimaryAction?.invoke()
         return true
+    }
+
+    companion object {
+        private const val SUMMARY_VISIBLE_MS = 30L * 60L * 1000L
     }
 }
