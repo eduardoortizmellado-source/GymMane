@@ -52,6 +52,9 @@ class WatchCaptureService : Service(), SensorEventListener {
     private var paused = false
     private var heartRate: Double? = null
     private var totalCalories: Double? = null
+    private var heartRateTotal = 0.0
+    private var heartRateCount = 0L
+    private var heartRateMax: Double? = null
     private var accelEnergy = 0.0
     private var accelSquareEnergy = 0.0
     private var gyroEnergy = 0.0
@@ -70,6 +73,7 @@ class WatchCaptureService : Service(), SensorEventListener {
         override fun onRegistered() = Unit
         override fun onRegistrationFailed(throwable: Throwable) {
             writeStatus("health_error", throwable.message ?: "registration_failed")
+            updateUi(WearMode.DEGRADED, throwable.message ?: "No se pudo iniciar el sensor")
         }
 
         override fun onAvailabilityChanged(dataType: DataType<*, *>, availability: Availability) {
@@ -98,8 +102,25 @@ class WatchCaptureService : Service(), SensorEventListener {
         sessionId = requestedSessionId.ifBlank { java.util.UUID.randomUUID().toString() }
         sequence = 0
         startedElapsed = SystemClock.elapsedRealtime()
+        val startedWall = System.currentTimeMillis()
         running = true
         paused = false
+        heartRate = null
+        totalCalories = null
+        heartRateTotal = 0.0
+        heartRateCount = 0L
+        heartRateMax = null
+        val previousUi = WearUiStateStore.read(this)
+        WearUiStateStore.write(
+            this,
+            previousUi.copy(
+                mode = WearMode.STARTING,
+                running = true,
+                sessionId = sessionId,
+                startedAt = startedWall,
+                completedAt = 0L
+            )
+        )
         postNotification("Capturando entrenamiento")
         registerMotionSensors()
         scope.launch {
@@ -117,8 +138,10 @@ class WatchCaptureService : Service(), SensorEventListener {
                     )
                 )
                 writeStatus("started", "ok")
+                updateUi(WearMode.ACTIVE)
             } catch (error: Throwable) {
                 writeStatus("health_error", error.message ?: error.javaClass.simpleName)
+                updateUi(WearMode.DEGRADED, error.message ?: "Sensor de salud no disponible")
             }
         }
         samplingJob = scope.launch {
@@ -132,6 +155,7 @@ class WatchCaptureService : Service(), SensorEventListener {
     private fun pauseCapture() {
         if (!running || paused) return
         paused = true
+        updateUi(WearMode.PAUSED)
         scope.launch {
             runCatching { exerciseClient.pauseExercise() }
             flushBatch("pause")
@@ -141,17 +165,28 @@ class WatchCaptureService : Service(), SensorEventListener {
     private fun resumeCapture() {
         if (!running || !paused) return
         paused = false
+        updateUi(WearMode.ACTIVE)
         scope.launch { runCatching { exerciseClient.resumeExercise() } }
     }
 
     private fun stopCapture() {
         if (!running) {
+            val previous = WearUiStateStore.read(this)
+            if (previous.running) {
+                sessionId = previous.sessionId
+                WearUiStateStore.write(
+                    this,
+                    previous.copy(mode = WearMode.SUMMARY, running = false, completedAt = System.currentTimeMillis())
+                )
+                scope.launch { runCatching { exerciseClient.endExercise() } }
+            }
             stopSelf()
             return
         }
         running = false
         samplingJob?.cancel()
         sensorManager.unregisterListener(this)
+        updateUi(WearMode.SUMMARY)
         scope.launch {
             runCatching { exerciseClient.endExercise() }
             flushBatch("final")
@@ -201,6 +236,7 @@ class WatchCaptureService : Service(), SensorEventListener {
             .put("accelSamples", accelCount)
             .put("gyroSamples", gyroCount)
         synchronized(batch) { batch.put(sample) }
+        updateUi(if (paused) WearMode.PAUSED else WearMode.ACTIVE)
         accelEnergy = 0.0
         accelSquareEnergy = 0.0
         gyroEnergy = 0.0
@@ -210,8 +246,32 @@ class WatchCaptureService : Service(), SensorEventListener {
     }
 
     private fun readHealthMetrics(metrics: DataPointContainer) {
-        heartRate = metrics.getData(DataType.HEART_RATE_BPM).lastOrNull()?.value ?: heartRate
+        metrics.getData(DataType.HEART_RATE_BPM).lastOrNull()?.value?.let { latest ->
+            heartRate = latest
+            heartRateTotal += latest
+            heartRateCount++
+            heartRateMax = maxOf(heartRateMax ?: latest, latest)
+        }
         totalCalories = metrics.getData(DataType.CALORIES_TOTAL)?.total ?: totalCalories
+    }
+
+    private fun updateUi(mode: WearMode, message: String = "") {
+        val previous = WearUiStateStore.read(this)
+        WearUiStateStore.write(
+            this,
+            previous.copy(
+                mode = mode,
+                running = running,
+                completedAt = if (mode == WearMode.SUMMARY) System.currentTimeMillis() else previous.completedAt,
+                sessionId = sessionId.ifBlank { previous.sessionId },
+                heartRate = heartRate,
+                heartRateAverage = if (heartRateCount == 0L) previous.heartRateAverage else heartRateTotal / heartRateCount,
+                heartRateMax = heartRateMax ?: previous.heartRateMax,
+                calories = totalCalories,
+                sampleCount = sequence,
+                message = message
+            )
+        )
     }
 
     private fun flushBatch(reason: String) {

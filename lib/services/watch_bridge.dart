@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
 
 class WatchBridge {
@@ -20,4 +22,26 @@ class WatchBridge {
   static Future<bool> pause(String sessionId) => _send('pause', sessionId);
   static Future<bool> resume(String sessionId) => _send('resume', sessionId);
   static Future<bool> stop(String sessionId) => _send('stop', sessionId);
+
+  static Future<bool> state({
+    required String sessionId,
+    required String phase,
+    String exerciseName = '',
+    int setIndex = 0,
+    int setCount = 0,
+    DateTime? phaseStartedAt,
+    DateTime? restEndsAt,
+  }) => _send(
+    'state',
+    jsonEncode({
+      'protocol': 1,
+      'sessionId': sessionId,
+      'phase': phase,
+      'exerciseName': exerciseName,
+      'setIndex': setIndex,
+      'setCount': setCount,
+      'phaseStartedAt': phaseStartedAt?.millisecondsSinceEpoch ?? 0,
+      'restEndsAt': restEndsAt?.millisecondsSinceEpoch ?? 0,
+    }),
+  );
 }

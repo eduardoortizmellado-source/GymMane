@@ -4,44 +4,37 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.view.Gravity
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import java.util.UUID
 
 class WearMainActivity : Activity() {
-    private lateinit var status: TextView
-    private lateinit var action: Button
-    private var running = false
+    private lateinit var watchView: GymManeWatchView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            setPadding(24, 16, 24, 16)
-            setBackgroundColor(Color.BLACK)
+        watchView = GymManeWatchView(this).apply {
+            onPrimaryAction = { handlePrimaryAction() }
+            onSecondaryAction = { finishCapture() }
+            onRunningChanged = { running ->
+                if (running) window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                else window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
         }
-        status = TextView(this).apply {
-            text = "Sensor listo"
-            textSize = 18f
-            gravity = Gravity.CENTER
-            setTextColor(Color.WHITE)
-        }
-        action = Button(this).apply {
-            text = "Iniciar prueba"
-            setOnClickListener { toggleCapture() }
-        }
-        root.addView(status)
-        root.addView(action)
-        setContentView(root)
+        setContentView(watchView)
         requestHealthPermissions()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        watchView.startRefreshing()
+    }
+
+    override fun onPause() {
+        watchView.stopRefreshing()
+        super.onPause()
     }
 
     private fun requestHealthPermissions() {
@@ -57,20 +50,33 @@ class WearMainActivity : Activity() {
         if (permissions.isNotEmpty()) ActivityCompat.requestPermissions(this, permissions.toTypedArray(), 41)
     }
 
-    private fun toggleCapture() {
-        val intent = Intent(this, WatchCaptureService::class.java)
-        if (!running) {
-            intent.action = WatchCaptureService.ACTION_START
-            intent.putExtra(WatchCaptureService.EXTRA_SESSION_ID, UUID.randomUUID().toString())
-            ContextCompat.startForegroundService(this, intent)
-            status.text = "Capturando FC y movimiento"
-            action.text = "Finalizar"
-        } else {
-            intent.action = WatchCaptureService.ACTION_STOP
-            startService(intent)
-            status.text = "Datos guardados y pendientes de sincronizar"
-            action.text = "Iniciar prueba"
+    private fun handlePrimaryAction() {
+        val state = WearUiStateStore.read(this)
+        if (state.mode == WearMode.DEGRADED && state.running) {
+            WearUiStateStore.write(this, state.copy(mode = WearMode.ACTIVE))
+            watchView.refreshNow()
+            return
         }
-        running = !running
+        val intent = Intent(this, WatchCaptureService::class.java)
+        when {
+            state.mode == WearMode.PAUSED -> intent.action = WatchCaptureService.ACTION_RESUME
+            state.running -> intent.action = WatchCaptureService.ACTION_PAUSE
+            else -> {
+                intent.action = WatchCaptureService.ACTION_START
+                intent.putExtra(WatchCaptureService.EXTRA_SESSION_ID, UUID.randomUUID().toString())
+            }
+        }
+        ContextCompat.startForegroundService(this, intent)
+        watchView.refreshNow()
+    }
+
+    private fun finishCapture() {
+        val state = WearUiStateStore.read(this)
+        if (!state.running) return
+        ContextCompat.startForegroundService(
+            this,
+            Intent(this, WatchCaptureService::class.java).apply { action = WatchCaptureService.ACTION_STOP }
+        )
+        watchView.refreshNow()
     }
 }

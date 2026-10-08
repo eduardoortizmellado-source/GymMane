@@ -216,6 +216,7 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     session = s;
     unawaited(HealthStore.instance.startTelemetry(s.id, DateTime.now()));
     unawaited(WatchBridge.start(s.id));
+    _syncWatchPhase('idle');
     route = 'session';
     persistNow();
     notifyListeners();
@@ -265,6 +266,25 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     final s = session;
     if (s == null || s.exercises.isEmpty) return null;
     return s.exercises[s.currentIndex];
+  }
+
+  void _syncWatchPhase(String phase, {int? exerciseIndex, int? setIndex, DateTime? startedAt}) {
+    final s = session;
+    if (s == null || s.exercises.isEmpty) return;
+    final exIndex = (exerciseIndex ?? s.currentIndex).clamp(0, s.exercises.length - 1);
+    final ex = s.exercises[exIndex];
+    final resolvedSet = setIndex ?? activeSetLocation?.set ?? 0;
+    unawaited(
+      WatchBridge.state(
+        sessionId: s.id,
+        phase: phase,
+        exerciseName: ex.name,
+        setIndex: resolvedSet + 1,
+        setCount: ex.sets.length,
+        phaseStartedAt: startedAt,
+        restEndsAt: phase == 'rest' ? s.restEndsAt : null,
+      ),
+    );
   }
 
   String get sessionProgressLabel {
@@ -326,14 +346,19 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     st.startedAt = DateTime.now();
     st.completedAt = null;
     st.cancelledAt = null;
-    unawaited(HealthStore.instance.savePhase(WorkoutPhase(
-      id: 'set-${st.id}',
-      sessionId: s.id,
-      kind: WorkoutPhaseKind.set,
-      startedAt: st.startedAt!,
-      exerciseId: s.exercises[exIdx].id,
-      setId: st.id,
-    )));
+    unawaited(
+      HealthStore.instance.savePhase(
+        WorkoutPhase(
+          id: 'set-${st.id}',
+          sessionId: s.id,
+          kind: WorkoutPhaseKind.set,
+          startedAt: st.startedAt!,
+          exerciseId: s.exercises[exIdx].id,
+          setId: st.id,
+        ),
+      ),
+    );
+    _syncWatchPhase('set', exerciseIndex: exIdx, setIndex: setIdx, startedAt: st.startedAt);
     _persist();
     notifyListeners();
     return true;
@@ -348,15 +373,19 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     st.done = true;
     st.completedAt = DateTime.now();
     st.cancelledAt = null;
-    unawaited(HealthStore.instance.savePhase(WorkoutPhase(
-      id: 'set-${st.id}',
-      sessionId: s.id,
-      kind: WorkoutPhaseKind.set,
-      startedAt: st.startedAt!,
-      endedAt: st.completedAt,
-      exerciseId: s.exercises[exIdx].id,
-      setId: st.id,
-    )));
+    unawaited(
+      HealthStore.instance.savePhase(
+        WorkoutPhase(
+          id: 'set-${st.id}',
+          sessionId: s.id,
+          kind: WorkoutPhaseKind.set,
+          startedAt: st.startedAt!,
+          endedAt: st.completedAt,
+          exerciseId: s.exercises[exIdx].id,
+          setId: st.id,
+        ),
+      ),
+    );
     _persist();
     notifyListeners();
     final chain = chainAt(exIdx);
@@ -378,6 +407,7 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     st.startedAt = null;
     st.completedAt = null;
     st.cancelledAt = DateTime.now();
+    _syncWatchPhase('idle', exerciseIndex: exIdx, setIndex: setIdx);
     _persist();
     notifyListeners();
   }
@@ -464,6 +494,7 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     _restTimer?.cancel();
     s.restFrozen = null;
     s.restEndsAt = DateTime.now().add(Duration(seconds: seconds));
+    _syncWatchPhase('rest');
     RestAlarm.instance.schedule(Duration(seconds: seconds));
     _restTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       final live = session;
@@ -475,6 +506,7 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
         live.clearRest();
         t.cancel();
         RestAlarm.instance.fireNow();
+        _syncWatchPhase('idle');
       }
       notifyListeners();
     });
@@ -509,6 +541,7 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     RestAlarm.instance.cancel();
     RestAlarm.instance.stopSound();
     session?.clearRest();
+    _syncWatchPhase('idle');
     notifyListeners();
   }
 
@@ -659,6 +692,7 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
   void nextExercise() {
     final s = session!;
     s.currentIndex = math.min(s.currentIndex + 1, s.exercises.length - 1);
+    _syncWatchPhase('idle');
     _persist();
     notifyListeners();
   }
@@ -668,6 +702,7 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     if (s == null || index < 0 || index >= s.exercises.length) return;
     _advanceTimer?.cancel();
     s.currentIndex = index;
+    _syncWatchPhase('idle');
     _persist();
     notifyListeners();
   }
@@ -675,6 +710,7 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
   void prevExercise() {
     final s = session!;
     s.currentIndex = math.max(s.currentIndex - 1, 0);
+    _syncWatchPhase('idle');
     _persist();
     notifyListeners();
   }
@@ -699,11 +735,7 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     s.summaryDuration = s.manual ? _elapsedBefore : sessionElapsed;
     s.complete = true;
     s.clearRest();
-    unawaited(HealthStore.instance.finishTelemetry(
-      s.id,
-      DateTime.now(),
-      weightKg: profile.weightKg,
-    ));
+    unawaited(HealthStore.instance.finishTelemetry(s.id, DateTime.now(), weightKg: profile.weightKg));
     unawaited(WatchBridge.stop(s.id));
 
     if (done.isNotEmpty) {
@@ -711,19 +743,29 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
       for (final e in s.exercises) {
         final doneSets = e.sets
             .where((st) => st.done)
-            .map((st) => LoggedSet(st.reps, st.weight,
+            .map(
+              (st) => LoggedSet(
+                st.reps,
+                st.weight,
                 kind: st.kind,
                 rpe: st.rpe,
                 id: st.id,
                 startedAt: st.startedAt,
-                completedAt: st.completedAt))
+                completedAt: st.completedAt,
+              ),
+            )
             .toList();
         if (doneSets.isNotEmpty) {
           logged.add(LoggedExercise(e.id, e.name, e.primary, doneSets));
         }
       }
-      final entry = LoggedSession(s.loggedAt ?? DateTime.now(), s.summaryDuration ?? 0, logged,
-          id: s.id, telemetryId: s.id);
+      final entry = LoggedSession(
+        s.loggedAt ?? DateTime.now(),
+        s.summaryDuration ?? 0,
+        logged,
+        id: s.id,
+        telemetryId: s.id,
+      );
       sessions.add(entry);
       sessions.sort((a, b) => a.date.compareTo(b.date));
       _computeSummaryHighlights(entry);
@@ -795,8 +837,16 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
               e.name,
               e.primary,
               e.sets
-                  .map((x) => SessionSet(x.reps, x.weight, true,
-                      id: x.id, startedAt: x.startedAt, completedAt: x.completedAt))
+                  .map(
+                    (x) => SessionSet(
+                      x.reps,
+                      x.weight,
+                      true,
+                      id: x.id,
+                      startedAt: x.startedAt,
+                      completedAt: x.completedAt,
+                    ),
+                  )
                   .toList(),
             ),
           )
