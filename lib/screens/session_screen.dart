@@ -195,7 +195,8 @@ class SessionScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(_rowPad, 0, _rowPad, 10),
                 child: _setsHeader(gc, repsOnly),
               ),
-              for (int j = 0; j < (ex?.sets.length ?? 0); j++) _setRow(gc, exIdx, j, ex!.sets[j], repsOnly),
+              for (int j = 0; j < (ex?.sets.length ?? 0); j++)
+                _setRow(context, gc, exIdx, j, ex!.sets[j], repsOnly),
               if (!repsOnly && ex != null) _plateRow(context, gc, ex),
               const SizedBox(height: 10),
               Padding(
@@ -463,9 +464,9 @@ class SessionScreen extends StatelessWidget {
     );
   }
 
-  Widget _setRow(GymColors gc, int exIdx, int j, SessionSet st, bool repsOnly) {
+  Widget _setRow(BuildContext context, GymColors gc, int exIdx, int j, SessionSet st, bool repsOnly) {
     final active = st.status == SessionSetStatus.active;
-    return Container(
+    final row = Container(
       margin: const EdgeInsets.only(bottom: 2),
       padding: const EdgeInsets.symmetric(horizontal: _rowPad, vertical: 10),
       decoration: BoxDecoration(
@@ -581,6 +582,65 @@ class SessionScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onLongPress: () => _showSetActions(context, exIdx, j),
+      child: row,
+    );
+  }
+
+  Future<void> _showSetActions(BuildContext context, int exIdx, int setIdx) async {
+    final gc = context.gc;
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          decoration: BoxDecoration(
+            color: gc.bgRaised,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SheetHandle(),
+              const SizedBox(height: 16),
+              Semantics(
+                button: true,
+                label: t.removeSet,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    fit.removeSessionSet(exIdx, setIdx);
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                    decoration: BoxDecoration(
+                      color: gc.danger.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(PhosphorIconsRegular.trash, size: 19, color: gc.danger),
+                        const SizedBox(width: 12),
+                        Text(
+                          t.removeSet,
+                          style: AppTheme.f(14, weight: FontWeight.w700, color: gc.danger),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

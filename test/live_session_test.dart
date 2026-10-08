@@ -158,6 +158,32 @@ void main() {
     expect(fit.activeSetLocation, isNull);
   });
 
+  test('a set can be removed while the workout is in progress', () {
+    fit.startWorkout();
+    fit.toggleMuscle('chest');
+    fit.trainContinue();
+    fit.startSession();
+    final original = fit.session!.exercises[0].sets.length;
+
+    fit.removeSessionSet(0, original - 1);
+
+    expect(fit.session!.exercises[0].sets.length, original - 1);
+  });
+
+  test('removing the active set clears the active-set lock', () {
+    fit.startWorkout();
+    fit.toggleMuscle('chest');
+    fit.trainContinue();
+    fit.startSession();
+
+    expect(fit.startSessionSet(0, 0), true);
+    fit.removeSessionSet(0, 0);
+
+    expect(fit.activeSetLocation, isNull);
+    expect(fit.startSessionSet(0, 0), true,
+        reason: 'la serie siguiente debe poder iniciarse inmediatamente');
+  });
+
   test('old live JSON remains readable and receives stable ids', () {
     final old = WorkoutSession.fromJson({
       'ex': [

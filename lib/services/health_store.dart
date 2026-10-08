@@ -242,4 +242,14 @@ class HealthStore {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
+
+  Future<void> deletePhaseForSet(String sessionId, String setId) async {
+    final database = _db;
+    if (database == null) return;
+    await database.delete(
+      'workout_phase',
+      where: 'session_id = ? AND set_id = ?',
+      whereArgs: [sessionId, setId],
+    );
+  }
 }

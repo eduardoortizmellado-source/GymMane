@@ -520,6 +520,18 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     notifyListeners();
   }
 
+  void removeSessionSet(int exIdx, int setIdx) {
+    final s = session;
+    if (s == null || exIdx < 0 || exIdx >= s.exercises.length) return;
+    final sets = s.exercises[exIdx].sets;
+    if (setIdx < 0 || setIdx >= sets.length) return;
+    _advanceTimer?.cancel();
+    final removed = sets.removeAt(setIdx);
+    unawaited(HealthStore.instance.deletePhaseForSet(s.id, removed.id));
+    _persist();
+    notifyListeners();
+  }
+
   void bumpSessionReps(int exIdx, int setIdx, int d) =>
       setSessionReps(exIdx, setIdx, session!.exercises[exIdx].sets[setIdx].reps + d);
 
