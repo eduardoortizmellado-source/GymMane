@@ -8,7 +8,6 @@ import android.os.Build
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import java.util.UUID
 
 class WearMainActivity : Activity() {
     private lateinit var watchView: GymManeWatchView
@@ -17,7 +16,6 @@ class WearMainActivity : Activity() {
         super.onCreate(savedInstanceState)
         watchView = GymManeWatchView(this).apply {
             onPrimaryAction = { handlePrimaryAction() }
-            onSecondaryAction = { finishCapture() }
             onRunningChanged = { running ->
                 val attributes = window.attributes
                 if (running) {
@@ -59,31 +57,15 @@ class WearMainActivity : Activity() {
 
     private fun handlePrimaryAction() {
         val state = WearUiStateStore.read(this)
-        if (state.mode == WearMode.DEGRADED && state.running) {
-            WearUiStateStore.write(this, state.copy(mode = WearMode.ACTIVE))
-            watchView.refreshNow()
-            return
-        }
+        if (!state.running) return
         val intent = Intent(this, WatchCaptureService::class.java)
         when {
             state.mode == WearMode.PAUSED -> intent.action = WatchCaptureService.ACTION_RESUME
-            state.running -> intent.action = WatchCaptureService.ACTION_PAUSE
-            else -> {
-                intent.action = WatchCaptureService.ACTION_START
-                intent.putExtra(WatchCaptureService.EXTRA_SESSION_ID, UUID.randomUUID().toString())
-            }
+            state.mode == WearMode.ACTIVE -> intent.action = WatchCaptureService.ACTION_PAUSE
+            else -> return
         }
+        intent.putExtra(WatchCaptureService.EXTRA_SESSION_ID, state.sessionId)
         ContextCompat.startForegroundService(this, intent)
-        watchView.refreshNow()
-    }
-
-    private fun finishCapture() {
-        val state = WearUiStateStore.read(this)
-        if (!state.running) return
-        ContextCompat.startForegroundService(
-            this,
-            Intent(this, WatchCaptureService::class.java).apply { action = WatchCaptureService.ACTION_STOP }
-        )
         watchView.refreshNow()
     }
 

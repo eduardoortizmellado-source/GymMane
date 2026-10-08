@@ -273,12 +273,13 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     if (s == null || s.exercises.isEmpty) return;
     final exIndex = (exerciseIndex ?? s.currentIndex).clamp(0, s.exercises.length - 1);
     final ex = s.exercises[exIndex];
+    final catalogExercise = exerciseById(ex.id);
     final resolvedSet = setIndex ?? activeSetLocation?.set ?? 0;
     unawaited(
       WatchBridge.state(
         sessionId: s.id,
         phase: phase,
-        exerciseName: ex.name,
+        exerciseName: catalogExercise == null ? ex.name : exerciseName(catalogExercise),
         setIndex: resolvedSet + 1,
         setCount: ex.sets.length,
         phaseStartedAt: startedAt,

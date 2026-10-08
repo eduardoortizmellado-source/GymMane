@@ -18,7 +18,6 @@ import kotlin.math.roundToInt
 
 class GymManeWatchView(context: Context) : View(context) {
     var onPrimaryAction: (() -> Unit)? = null
-    var onSecondaryAction: (() -> Unit)? = null
     var onRunningChanged: ((Boolean) -> Unit)? = null
     private val handler = Handler(Looper.getMainLooper())
     private val clock = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -33,7 +32,9 @@ class GymManeWatchView(context: Context) : View(context) {
     private var state = WearUiStateStore.read(context)
     private var lastKeepAwake: Boolean? = null
     private var pressed = false
-    private var pressedAt = 0L
+    private var touchStartedInsideButton = false
+    private var touchDownX = 0f
+    private var touchDownY = 0f
 
     private val ticker = object : Runnable {
         override fun run() {
@@ -95,7 +96,7 @@ class GymManeWatchView(context: Context) : View(context) {
         text(canvas, "RELOJ LISTO", cx, top + 72, 9f, Color.WHITE, condensed)
         text(canvas, "El teléfono iniciará la captura", cx, top + 88, 7f, muted)
         iconCircle(canvas, cx, top + 112, sage)
-        button(canvas, cx, top + 153, "INICIAR PRUEBA", bronze)
+        button(canvas, cx, top + 153, "INICIA EN EL TELÉFONO", muted, outlined = true)
         text(canvas, "FC · MOVIMIENTO · CALORÍAS", cx, top + 181, 5.5f, muted)
     }
 
@@ -175,7 +176,7 @@ class GymManeWatchView(context: Context) : View(context) {
         metric(canvas, cx - 45, top + 101, "FC MEDIA", state.heartRateAverage?.roundToInt()?.toString() ?: "--", "bpm")
         metric(canvas, cx, top + 101, "FC MÁX", state.heartRateMax?.roundToInt()?.toString() ?: "--", "bpm")
         metric(canvas, cx + 45, top + 101, "RELOJ", state.calories?.roundToInt()?.toString() ?: "--", "kcal")
-        button(canvas, cx, top + 153, "NUEVA CAPTURA", bronze, outlined = true)
+        button(canvas, cx, top + 153, "INICIA EN EL TELÉFONO", muted, outlined = true)
         text(canvas, "Datos enviados al teléfono", cx, top + 180, 5.5f, muted)
     }
 
@@ -259,17 +260,57 @@ class GymManeWatchView(context: Context) : View(context) {
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> { pressed = true; pressedAt = System.currentTimeMillis(); invalidate(); return true }
-            MotionEvent.ACTION_UP -> {
-                val longPress = System.currentTimeMillis() - pressedAt >= 850L
-                pressed = false
+            MotionEvent.ACTION_DOWN -> {
+                val point = logicalPoint(event.x, event.y)
+                touchStartedInsideButton = actionButtonContains(point.first, point.second)
+                touchDownX = event.x
+                touchDownY = event.y
+                pressed = touchStartedInsideButton
                 invalidate()
-                if (longPress && state.running) onSecondaryAction?.invoke() else performClick()
                 return true
             }
-            MotionEvent.ACTION_CANCEL -> { pressed = false; invalidate() }
+            MotionEvent.ACTION_MOVE -> {
+                val moved = kotlin.math.hypot(event.x - touchDownX, event.y - touchDownY) > 12f
+                if (moved && pressed) {
+                    pressed = false
+                    invalidate()
+                }
+                return true
+            }
+            MotionEvent.ACTION_UP -> {
+                val point = logicalPoint(event.x, event.y)
+                val shouldClick = pressed && touchStartedInsideButton && actionButtonContains(point.first, point.second)
+                pressed = false
+                touchStartedInsideButton = false
+                invalidate()
+                if (shouldClick) performClick()
+                return true
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                pressed = false
+                touchStartedInsideButton = false
+                invalidate()
+                return true
+            }
         }
         return super.onTouchEvent(event)
+    }
+
+    private fun logicalPoint(x: Float, y: Float): Pair<Float, Float> {
+        val scale = (minOf(width, height) / 192f).coerceAtLeast(.8f)
+        val left = (width - 192f * scale) / 2f
+        val top = (height - 192f * scale) / 2f
+        return Pair((x - left) / scale, (y - top) / scale)
+    }
+
+    private fun actionButtonContains(x: Float, y: Float): Boolean {
+        val centerY = when {
+            state.mode == WearMode.PAUSED -> 143f
+            state.mode == WearMode.ACTIVE && state.phase == "rest" -> 160f
+            state.mode == WearMode.ACTIVE -> 145f
+            else -> return false
+        }
+        return x in 44f..148f && y in (centerY - 13f)..(centerY + 10f)
     }
 
     override fun performClick(): Boolean {
