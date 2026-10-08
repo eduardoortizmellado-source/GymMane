@@ -74,6 +74,7 @@ class WatchCaptureService : Service(), SensorEventListener {
         override fun onRegistrationFailed(throwable: Throwable) {
             writeStatus("health_error", throwable.message ?: "registration_failed")
             updateUi(WearMode.DEGRADED, throwable.message ?: "No se pudo iniciar el sensor")
+            WearHaptics.error(this@WatchCaptureService)
         }
 
         override fun onAvailabilityChanged(dataType: DataType<*, *>, availability: Availability) {
@@ -139,9 +140,11 @@ class WatchCaptureService : Service(), SensorEventListener {
                 )
                 writeStatus("started", "ok")
                 updateUi(WearMode.ACTIVE)
+                WearHaptics.captureStarted(this@WatchCaptureService)
             } catch (error: Throwable) {
                 writeStatus("health_error", error.message ?: error.javaClass.simpleName)
                 updateUi(WearMode.DEGRADED, error.message ?: "Sensor de salud no disponible")
+                WearHaptics.error(this@WatchCaptureService)
             }
         }
         samplingJob = scope.launch {
@@ -156,6 +159,7 @@ class WatchCaptureService : Service(), SensorEventListener {
         if (!running || paused) return
         paused = true
         updateUi(WearMode.PAUSED)
+        WearHaptics.paused(this)
         scope.launch {
             runCatching { exerciseClient.pauseExercise() }
             flushBatch("pause")
@@ -166,6 +170,7 @@ class WatchCaptureService : Service(), SensorEventListener {
         if (!running || !paused) return
         paused = false
         updateUi(WearMode.ACTIVE)
+        WearHaptics.resumed(this)
         scope.launch { runCatching { exerciseClient.resumeExercise() } }
     }
 
@@ -187,6 +192,7 @@ class WatchCaptureService : Service(), SensorEventListener {
         samplingJob?.cancel()
         sensorManager.unregisterListener(this)
         updateUi(WearMode.SUMMARY)
+        WearHaptics.completed(this)
         scope.launch {
             runCatching { exerciseClient.endExercise() }
             flushBatch("final")

@@ -45,11 +45,17 @@ class PhoneCommandService : WearableListenerService() {
             if (previous.sessionId.isNotBlank() && incomingSession.isNotBlank() && previous.sessionId != incomingSession) {
                 return
             }
+            val nextPhase = json.optString("phase", "idle")
+            when {
+                nextPhase == "set" && previous.phase != "set" -> WearHaptics.setStarted(this)
+                nextPhase == "rest" && previous.phase != "rest" -> WearHaptics.restStarted(this)
+                nextPhase == "idle" && previous.phase == "rest" -> WearHaptics.restFinished(this)
+            }
             WearUiStateStore.write(
                 this,
                 previous.copy(
                     sessionId = incomingSession.ifBlank { previous.sessionId },
-                    phase = json.optString("phase", "idle"),
+                    phase = nextPhase,
                     exerciseName = json.optString("exerciseName"),
                     setIndex = json.optInt("setIndex"),
                     setCount = json.optInt("setCount"),
