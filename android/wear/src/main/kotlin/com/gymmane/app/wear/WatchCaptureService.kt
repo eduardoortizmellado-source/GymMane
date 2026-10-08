@@ -91,11 +91,11 @@ class WatchCaptureService : Service(), SensorEventListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START -> startCapture(intent.getStringExtra(EXTRA_SESSION_ID).orEmpty())
-            ACTION_PAUSE -> pauseCapture()
-            ACTION_RESUME -> resumeCapture()
-            ACTION_STOP -> stopCapture()
+            ACTION_PAUSE -> pauseCapture(intent.getStringExtra(EXTRA_SESSION_ID).orEmpty())
+            ACTION_RESUME -> resumeCapture(intent.getStringExtra(EXTRA_SESSION_ID).orEmpty())
+            ACTION_STOP -> stopCapture(intent.getStringExtra(EXTRA_SESSION_ID).orEmpty())
         }
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     private fun startCapture(requestedSessionId: String) {
@@ -119,7 +119,8 @@ class WatchCaptureService : Service(), SensorEventListener {
                 running = true,
                 sessionId = sessionId,
                 startedAt = startedWall,
-                completedAt = 0L
+                completedAt = 0L,
+                lastControlAt = maxOf(previousUi.lastControlAt, startedWall)
             )
         )
         postNotification("Capturando entrenamiento")
@@ -150,12 +151,18 @@ class WatchCaptureService : Service(), SensorEventListener {
         samplingJob = scope.launch {
             while (running) {
                 delay(1000)
+                if (isControlStale()) {
+                    writeStatus("auto_stopped", "No hubo actividad desde el teléfono durante 30 minutos")
+                    stopCapture()
+                    break
+                }
                 if (!paused) captureSecond()
             }
         }
     }
 
-    private fun pauseCapture() {
+    private fun pauseCapture(requestedSessionId: String = "") {
+        if (!matchesSession(requestedSessionId)) return
         if (!running || paused) return
         paused = true
         updateUi(WearMode.PAUSED)
@@ -166,7 +173,8 @@ class WatchCaptureService : Service(), SensorEventListener {
         }
     }
 
-    private fun resumeCapture() {
+    private fun resumeCapture(requestedSessionId: String = "") {
+        if (!matchesSession(requestedSessionId)) return
         if (!running || !paused) return
         paused = false
         updateUi(WearMode.ACTIVE)
@@ -174,7 +182,8 @@ class WatchCaptureService : Service(), SensorEventListener {
         scope.launch { runCatching { exerciseClient.resumeExercise() } }
     }
 
-    private fun stopCapture() {
+    private fun stopCapture(requestedSessionId: String = "") {
+        if (!matchesSession(requestedSessionId)) return
         if (!running) {
             val previous = WearUiStateStore.read(this)
             if (previous.running) {
@@ -203,11 +212,22 @@ class WatchCaptureService : Service(), SensorEventListener {
 
     private fun registerMotionSensors() {
         sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+            sensorManager.registerListener(this, it, MOTION_SAMPLE_US, MOTION_BATCH_US)
         }
         sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+            sensorManager.registerListener(this, it, MOTION_SAMPLE_US, MOTION_BATCH_US)
         }
+    }
+
+    private fun matchesSession(requestedSessionId: String): Boolean {
+        if (requestedSessionId.isBlank()) return true
+        val current = sessionId.ifBlank { WearUiStateStore.read(this).sessionId }
+        return current.isBlank() || current == requestedSessionId
+    }
+
+    private fun isControlStale(): Boolean {
+        val lastControlAt = WearUiStateStore.read(this).lastControlAt
+        return lastControlAt > 0L && System.currentTimeMillis() - lastControlAt > CONTROL_TIMEOUT_MS
     }
 
     override fun onSensorChanged(event: SensorEvent) {
@@ -353,6 +373,20 @@ class WatchCaptureService : Service(), SensorEventListener {
 
     override fun onDestroy() {
         sensorManager.unregisterListener(this)
+        if (running) {
+            running = false
+            exerciseClient.endExerciseAsync()
+            val previous = WearUiStateStore.read(this)
+            WearUiStateStore.write(
+                this,
+                previous.copy(
+                    mode = WearMode.SUMMARY,
+                    running = false,
+                    completedAt = System.currentTimeMillis(),
+                    message = "Captura cerrada al detenerse el servicio"
+                )
+            )
+        }
         exerciseClient.clearUpdateCallbackAsync(exerciseCallback)
         scope.cancel()
         super.onDestroy()
@@ -368,5 +402,8 @@ class WatchCaptureService : Service(), SensorEventListener {
         const val EXTRA_SESSION_ID = "sessionId"
         private const val CHANNEL_ID = "gymmane_capture"
         private const val NOTIFICATION_ID = 4101
+        private const val MOTION_SAMPLE_US = 40_000
+        private const val MOTION_BATCH_US = 1_000_000
+        private const val CONTROL_TIMEOUT_MS = 30L * 60L * 1000L
     }
 }

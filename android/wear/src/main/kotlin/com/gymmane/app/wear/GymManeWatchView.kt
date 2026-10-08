@@ -31,7 +31,7 @@ class GymManeWatchView(context: Context) : View(context) {
     private val muted = Color.rgb(153, 153, 153)
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var state = WearUiStateStore.read(context)
-    private var lastRunning: Boolean? = null
+    private var lastKeepAwake: Boolean? = null
     private var pressed = false
     private var pressedAt = 0L
 
@@ -51,9 +51,10 @@ class GymManeWatchView(context: Context) : View(context) {
 
     fun refreshNow() {
         state = WearUiStateStore.read(context)
-        if (lastRunning != state.running) {
-            lastRunning = state.running
-            onRunningChanged?.invoke(state.running)
+        val keepAwake = state.running && System.currentTimeMillis() - state.updatedAt < 15_000L
+        if (lastKeepAwake != keepAwake) {
+            lastKeepAwake = keepAwake
+            onRunningChanged?.invoke(keepAwake)
         }
         invalidate()
     }

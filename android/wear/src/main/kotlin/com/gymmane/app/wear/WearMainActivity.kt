@@ -19,8 +19,15 @@ class WearMainActivity : Activity() {
             onPrimaryAction = { handlePrimaryAction() }
             onSecondaryAction = { finishCapture() }
             onRunningChanged = { running ->
-                if (running) window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                else window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                val attributes = window.attributes
+                if (running) {
+                    window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    attributes.screenBrightness = ACTIVE_SCREEN_BRIGHTNESS
+                } else {
+                    window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    attributes.screenBrightness = android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+                }
+                window.attributes = attributes
             }
         }
         setContentView(watchView)
@@ -78,5 +85,9 @@ class WearMainActivity : Activity() {
             Intent(this, WatchCaptureService::class.java).apply { action = WatchCaptureService.ACTION_STOP }
         )
         watchView.refreshNow()
+    }
+
+    companion object {
+        private const val ACTIVE_SCREEN_BRIGHTNESS = 0.22f
     }
 }

@@ -22,6 +22,7 @@ data class WearUiState(
     val calories: Double? = null,
     val sampleCount: Long = 0,
     val message: String = "",
+    val lastControlAt: Long = 0L,
     val updatedAt: Long = 0L
 )
 
@@ -49,6 +50,7 @@ object WearUiStateStore {
             calories = p.readOptionalDouble("calories"),
             sampleCount = p.getLong("sampleCount", 0L),
             message = p.getString("message", "").orEmpty(),
+            lastControlAt = p.getLong("lastControlAt", 0L),
             updatedAt = p.getLong("updatedAt", 0L)
         )
     }
@@ -72,6 +74,7 @@ object WearUiStateStore {
             putOptionalDouble("calories", state.calories)
             putLong("sampleCount", state.sampleCount)
             putString("message", state.message)
+            putLong("lastControlAt", state.lastControlAt)
             putLong("updatedAt", System.currentTimeMillis())
         }.apply()
     }

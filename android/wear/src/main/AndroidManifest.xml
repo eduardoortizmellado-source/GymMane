@@ -47,6 +47,10 @@
                 <data android:scheme="wear" android:host="*" android:pathPrefix="/gymmane/command/v1" />
                 <data android:scheme="wear" android:host="*" android:pathPrefix="/gymmane/ack/v1" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/gymmane/control/v1" />
+            </intent-filter>
         </service>
     </application>
 </manifest>
