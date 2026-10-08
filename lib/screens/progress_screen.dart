@@ -38,8 +38,10 @@ class ProgressScreen extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(t.progressTitle,
-                      style: AppTheme.f(27, weight: FontWeight.w800, color: gc.text)),
+                  child: Text(
+                    t.progressTitle,
+                    style: AppTheme.f(27, weight: FontWeight.w800, color: gc.text),
+                  ),
                 ),
                 Semantics(
                   button: true,
@@ -57,23 +59,15 @@ class ProgressScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
-            if (fit.sessions.isEmpty) ...[
-              _setupCard(context, gc),
-              const SizedBox(height: 12),
-            ],
+            if (fit.sessions.isEmpty) ...[_setupCard(context, gc), const SizedBox(height: 12)],
             _heroRow(context, gc, change, bw),
-            if (fit.sessions.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _consistency(context, gc),
-            ],
+            if (fit.sessions.isNotEmpty) ...[const SizedBox(height: 12), _consistency(context, gc)],
             const SizedBox(height: 12),
             _totals(gc),
+            if (fit.sessions.isNotEmpty) ...[const SizedBox(height: 12), _historyCard(context, gc)],
             const SizedBox(height: 12),
             const _MuscleMapCard(),
-            for (final block in _blocks(context, gc, bw, split, prs)) ...[
-              const SizedBox(height: 12),
-              block,
-            ],
+            for (final block in _blocks(context, gc, bw, split, prs)) ...[const SizedBox(height: 12), block],
             if (fit.sessions.isNotEmpty && _missing.isNotEmpty) ...[
               const SizedBox(height: 12),
               _setupCard(context, gc),
@@ -98,50 +92,63 @@ class ProgressScreen extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-      decoration: BoxDecoration(color: gc.bgRaised, borderRadius: BorderRadius.circular(22)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            Expanded(
-              child: Text(label.toUpperCase(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTheme.f(10,
-                      weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 0.9)),
-            ),
-            ?badge,
-          ]),
-          const SizedBox(height: 10),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+        decoration: BoxDecoration(color: gc.bgRaised, borderRadius: BorderRadius.circular(22)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Text(value, style: AppTheme.f(28, weight: FontWeight.w800, color: gc.text)),
-                if (unit.isNotEmpty) ...[
-                  const SizedBox(width: 5),
-                  Text(unit, style: AppTheme.f(13, weight: FontWeight.w500, color: gc.textSecondary)),
-                ],
+                Expanded(
+                  child: Text(
+                    label.toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTheme.f(
+                      10,
+                      weight: FontWeight.w600,
+                      color: gc.textTertiary,
+                      letterSpacing: 0.9,
+                    ),
+                  ),
+                ),
+                ?badge,
               ],
             ),
-          ),
-          if (note != null) ...[
-            const SizedBox(height: 4),
-            Text(note,
+            const SizedBox(height: 10),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    value,
+                    style: AppTheme.f(28, weight: FontWeight.w800, color: gc.text),
+                  ),
+                  if (unit.isNotEmpty) ...[
+                    const SizedBox(width: 5),
+                    Text(
+                      unit,
+                      style: AppTheme.f(13, weight: FontWeight.w500, color: gc.textSecondary),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (note != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                note,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTheme.f(11.5, weight: FontWeight.w500, color: gc.textTertiary)),
+                style: AppTheme.f(11.5, weight: FontWeight.w500, color: gc.textTertiary),
+              ),
+            ],
+            if (chart != null) ...[const SizedBox(height: 12), chart],
           ],
-          if (chart != null) ...[
-            const SizedBox(height: 12),
-            chart,
-          ],
-        ],
-      ),
+        ),
       ),
     );
   }
@@ -149,11 +156,17 @@ class ProgressScreen extends StatelessWidget {
   Widget _delta(GymColors gc, int pct) {
     final up = pct >= 0;
     final color = up ? gc.sage : gc.accent;
-    return Row(mainAxisSize: MainAxisSize.min, children: [
-      Icon(up ? PhosphorIconsBold.trendUp : PhosphorIconsBold.trendDown, size: 11, color: color),
-      const SizedBox(width: 3),
-      Text('${pct.abs()}%', style: AppTheme.f(11, weight: FontWeight.w700, color: color)),
-    ]);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(up ? PhosphorIconsBold.trendUp : PhosphorIconsBold.trendDown, size: 11, color: color),
+        const SizedBox(width: 3),
+        Text(
+          '${pct.abs()}%',
+          style: AppTheme.f(11, weight: FontWeight.w700, color: color),
+        ),
+      ],
+    );
   }
 
   Widget _heroRow(BuildContext context, GymColors gc, int? change, List<double> bw) {
@@ -177,11 +190,13 @@ class ProgressScreen extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: weight == null
-                ? _tile(gc,
+                ? _tile(
+                    gc,
                     label: t.weightLabel,
                     value: '—',
                     note: t.tileAddWeight,
-                    onTap: () => _logBodyweight(context))
+                    onTap: () => _logBodyweight(context),
+                  )
                 : _tile(
                     gc,
                     label: t.weightLabel,
@@ -208,9 +223,10 @@ class ProgressScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(t.consistency.toUpperCase(),
-                  style: AppTheme.f(10,
-                      weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 0.9)),
+              Text(
+                t.consistency.toUpperCase(),
+                style: AppTheme.f(10, weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 0.9),
+              ),
               const Spacer(),
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
@@ -218,18 +234,19 @@ class ProgressScreen extends StatelessWidget {
                 child: Semantics(
                   button: true,
                   label: t.heatToneTitle,
-                  child: Row(children: [
-                    for (final c in heatRamp(gc, fit.heatTone).skip(1))
-                      Container(
-                        width: 9,
-                        height: 9,
-                        margin: const EdgeInsets.only(left: 3),
-                        decoration:
-                            BoxDecoration(color: c, borderRadius: BorderRadius.circular(3)),
-                      ),
-                    const SizedBox(width: 7),
-                    Icon(PhosphorIconsRegular.caretDown, size: 11, color: gc.textTertiary),
-                  ]),
+                  child: Row(
+                    children: [
+                      for (final c in heatRamp(gc, fit.heatTone).skip(1))
+                        Container(
+                          width: 9,
+                          height: 9,
+                          margin: const EdgeInsets.only(left: 3),
+                          decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(3)),
+                        ),
+                      const SizedBox(width: 7),
+                      Icon(PhosphorIconsRegular.caretDown, size: 11, color: gc.textTertiary),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -237,15 +254,21 @@ class ProgressScreen extends StatelessWidget {
           const SizedBox(height: 14),
           Heatmap(levels: fit.heatmapLevels, onTapDay: (i) => _showDay(context, i)),
           const SizedBox(height: 14),
-          Row(children: [
-            Icon(PhosphorIconsFill.fire, size: 14, color: gc.accent),
-            const SizedBox(width: 7),
-            Text(t.streakDays(fit.currentStreak),
-                style: AppTheme.f(12.5, weight: FontWeight.w600, color: gc.text)),
-            const Spacer(),
-            Text(t.weekOfGoal(fit.sessionsThisWeek, fit.weeklyTarget),
-                style: AppTheme.f(12, weight: FontWeight.w500, color: gc.textTertiary)),
-          ]),
+          Row(
+            children: [
+              Icon(PhosphorIconsFill.fire, size: 14, color: gc.accent),
+              const SizedBox(width: 7),
+              Text(
+                t.streakDays(fit.currentStreak),
+                style: AppTheme.f(12.5, weight: FontWeight.w600, color: gc.text),
+              ),
+              const Spacer(),
+              Text(
+                t.weekOfGoal(fit.sessionsThisWeek, fit.weeklyTarget),
+                style: AppTheme.f(12, weight: FontWeight.w500, color: gc.textTertiary),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -256,20 +279,90 @@ class ProgressScreen extends StatelessWidget {
     final cells = <(String, String, String)>[
       (t.allTimeSessions, '${fit.totalSessions}', ''),
       (t.allTimeSets, '${fit.totalSets}', ''),
-      (
-        t.allTimeTime,
-        hours >= 1 ? '$hours' : '${fit.totalTime.inMinutes}',
-        hours >= 1 ? t.unitHours : 'min'
-      ),
+      (t.allTimeTime, hours >= 1 ? '$hours' : '${fit.totalTime.inMinutes}', hours >= 1 ? t.unitHours : 'min'),
     ];
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (var i = 0; i < cells.length; i++) ...[
-            Expanded(child: _tile(gc, label: cells[i].$1, value: cells[i].$2, unit: cells[i].$3)),
+            Expanded(
+              child: _tile(gc, label: cells[i].$1, value: cells[i].$2, unit: cells[i].$3),
+            ),
             if (i < cells.length - 1) const SizedBox(width: 12),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _historyCard(BuildContext context, GymColors gc) {
+    final sessions = [...fit.sessions]..sort((a, b) => b.date.compareTo(a.date));
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
+      decoration: BoxDecoration(color: gc.bgRaised, borderRadius: BorderRadius.circular(22)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                t.history,
+                style: AppTheme.f(10, weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 0.9),
+              ),
+              const Spacer(),
+              Icon(PhosphorIconsRegular.pencilSimple, size: 14, color: gc.textTertiary),
+            ],
+          ),
+          const SizedBox(height: 8),
+          for (final session in sessions.take(5))
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _showDate(context, session.date),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(color: gc.bgRaised2, shape: BoxShape.circle),
+                      child: Icon(
+                        PhosphorIconsRegular.clockCounterClockwise,
+                        size: 17,
+                        color: gc.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            t.shortDateYear(session.date),
+                            style: AppTheme.f(13.5, weight: FontWeight.w600, color: gc.text),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            session.exercises.take(3).map((e) => t.catalogName(e.id, e.name)).join(' · '),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTheme.f(11.5, weight: FontWeight.w500, color: gc.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      t.setCount(session.setCount),
+                      style: AppTheme.f(11.5, weight: FontWeight.w600, color: gc.textTertiary),
+                    ),
+                    const SizedBox(width: 5),
+                    Icon(PhosphorIconsRegular.caretRight, size: 13, color: gc.textTertiary),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -292,14 +385,19 @@ class ProgressScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            Text(t.thisWeekTitle.toUpperCase(),
-                style: AppTheme.f(10,
-                    weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 0.9)),
-            const Spacer(),
-            Text(t.setsThisWeek(sets.fold(0, (a, b) => a + b)),
-                style: AppTheme.f(11.5, weight: FontWeight.w600, color: gc.textSecondary)),
-          ]),
+          Row(
+            children: [
+              Text(
+                t.thisWeekTitle.toUpperCase(),
+                style: AppTheme.f(10, weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 0.9),
+              ),
+              const Spacer(),
+              Text(
+                t.setsThisWeek(sets.fold(0, (a, b) => a + b)),
+                style: AppTheme.f(11.5, weight: FontWeight.w600, color: gc.textSecondary),
+              ),
+            ],
+          ),
           const SizedBox(height: 18),
           SizedBox(
             height: 92,
@@ -311,10 +409,14 @@ class ProgressScreen extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(sets[i] > 0 ? '${sets[i]}' : '',
-                            style: AppTheme.f(11,
-                                weight: FontWeight.w700,
-                                color: i == todayIndex ? gc.text : gc.textSecondary)),
+                        Text(
+                          sets[i] > 0 ? '${sets[i]}' : '',
+                          style: AppTheme.f(
+                            11,
+                            weight: FontWeight.w700,
+                            color: i == todayIndex ? gc.text : gc.textSecondary,
+                          ),
+                        ),
                         const SizedBox(height: 6),
                         Container(
                           height: top == 0 ? 6 : (8 + 52 * sets[i] / top),
@@ -341,9 +443,11 @@ class ProgressScreen extends StatelessWidget {
                   child: Text(
                     t.weekdayInitial((t.firstWeekday - 1 + i) % 7 + 1),
                     textAlign: TextAlign.center,
-                    style: AppTheme.f(11,
-                        weight: i == todayIndex ? FontWeight.w700 : FontWeight.w500,
-                        color: i == todayIndex ? gc.text : gc.textTertiary),
+                    style: AppTheme.f(
+                      11,
+                      weight: i == todayIndex ? FontWeight.w700 : FontWeight.w500,
+                      color: i == todayIndex ? gc.text : gc.textTertiary,
+                    ),
                   ),
                 ),
                 if (i < 6) const SizedBox(width: 8),
@@ -356,14 +460,16 @@ class ProgressScreen extends StatelessWidget {
   }
 
   List<({String label, bool done, String route})> _steps() => [
-        (label: t.setupWorkout, done: fit.sessions.isNotEmpty, route: 'train'),
-        (label: t.setupWeight, done: fit.bodyweight.isNotEmpty, route: 'weight'),
-        (label: t.setupMeasures, done: fit.measures.isNotEmpty, route: 'measures'),
-        (label: t.setupPhoto, done: fit.shotCount > 0, route: 'timeline'),
-      ];
+    (label: t.setupWorkout, done: fit.sessions.isNotEmpty, route: 'train'),
+    (label: t.setupWeight, done: fit.bodyweight.isNotEmpty, route: 'weight'),
+    (label: t.setupMeasures, done: fit.measures.isNotEmpty, route: 'measures'),
+    (label: t.setupPhoto, done: fit.shotCount > 0, route: 'timeline'),
+  ];
 
-  List<String> get _missing =>
-      [for (final s in _steps()) if (!s.done) s.label];
+  List<String> get _missing => [
+    for (final s in _steps())
+      if (!s.done) s.label,
+  ];
 
   void _goStep(BuildContext context, String route) {
     switch (route) {
@@ -391,8 +497,10 @@ class ProgressScreen extends StatelessWidget {
         children: [
           Text(t.setupTitle, style: AppTheme.f(15.5, color: gc.text)),
           const SizedBox(height: 4),
-          Text(t.setupHint,
-              style: AppTheme.f(12, weight: FontWeight.w500, color: gc.textTertiary, height: 1.4)),
+          Text(
+            t.setupHint,
+            style: AppTheme.f(12, weight: FontWeight.w500, color: gc.textTertiary, height: 1.4),
+          ),
           const SizedBox(height: 14),
           for (final step in _steps())
             GestureDetector(
@@ -400,22 +508,27 @@ class ProgressScreen extends StatelessWidget {
               onTap: step.done ? null : () => _goStep(context, step.route),
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 13),
-                child: Row(children: [
-                  Icon(
-                    step.done ? PhosphorIconsFill.checkCircle : PhosphorIconsRegular.circleDashed,
-                    size: 17,
-                    color: step.done ? gc.sage : gc.textTertiary,
-                  ),
-                  const SizedBox(width: 11),
-                  Expanded(
-                    child: Text(step.label,
-                        style: AppTheme.f(13,
-                            weight: FontWeight.w500,
-                            color: step.done ? gc.textTertiary : gc.text)),
-                  ),
-                  if (!step.done)
-                    Icon(PhosphorIconsBold.caretRight, size: 13, color: gc.textTertiary),
-                ]),
+                child: Row(
+                  children: [
+                    Icon(
+                      step.done ? PhosphorIconsFill.checkCircle : PhosphorIconsRegular.circleDashed,
+                      size: 17,
+                      color: step.done ? gc.sage : gc.textTertiary,
+                    ),
+                    const SizedBox(width: 11),
+                    Expanded(
+                      child: Text(
+                        step.label,
+                        style: AppTheme.f(
+                          13,
+                          weight: FontWeight.w500,
+                          color: step.done ? gc.textTertiary : gc.text,
+                        ),
+                      ),
+                    ),
+                    if (!step.done) Icon(PhosphorIconsBold.caretRight, size: 13, color: gc.textTertiary),
+                  ],
+                ),
               ),
             ),
         ],
@@ -439,26 +552,25 @@ class ProgressScreen extends StatelessWidget {
     ];
   }
 
-  Widget _prCard(
-      GymColors gc, List<({String id, String name, double topWeight, double oneRm})> prs) {
+  Widget _prCard(GymColors gc, List<({String id, String name, double topWeight, double oneRm})> prs) {
     return SoftCard(
       radius: 20,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(t.personalRecords,
-              style: AppTheme.f(10, weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 0.9)),
+          Text(
+            t.personalRecords,
+            style: AppTheme.f(10, weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 0.9),
+          ),
           const SizedBox(height: 14),
           if (prs.isEmpty)
-            Text(t.prEmpty,
-                style: AppTheme.s(13, color: gc.textSecondary))
+            Text(t.prEmpty, style: AppTheme.s(13, color: gc.textSecondary))
           else
             for (int i = 0; i < prs.length; i++) _prRow(gc, prs[i], i < prs.length - 1),
         ],
       ),
     );
   }
-
 
   Widget _timelineCard(GymColors gc) {
     final pair = fit.comparePair;
@@ -476,15 +588,20 @@ class ProgressScreen extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(t.timeline,
-                      style: AppTheme.d(14,
-                          weight: FontWeight.w600, color: gc.text, letterSpacing: 1)),
+                  child: Text(
+                    t.timeline,
+                    style: AppTheme.d(14, weight: FontWeight.w600, color: gc.text, letterSpacing: 1),
+                  ),
                 ),
                 if (last != null && left != null)
-                  Text(fit.photoDue ? t.photoDueNow : t.photoNextIn(left),
-                      style: AppTheme.s(11.5,
-                          weight: FontWeight.w600,
-                          color: fit.photoDue ? gc.accent : gc.textTertiary)),
+                  Text(
+                    fit.photoDue ? t.photoDueNow : t.photoNextIn(left),
+                    style: AppTheme.s(
+                      11.5,
+                      weight: FontWeight.w600,
+                      color: fit.photoDue ? gc.accent : gc.textTertiary,
+                    ),
+                  ),
                 const SizedBox(width: 8),
                 Icon(PhosphorIconsRegular.caretRight, size: 15, color: gc.textTertiary),
               ],
@@ -508,11 +625,12 @@ class ProgressScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(t.daysApart(fit.compareDays),
-                              style: AppTheme.d(15, weight: FontWeight.w700, color: gc.text)),
+                          Text(
+                            t.daysApart(fit.compareDays),
+                            style: AppTheme.d(15, weight: FontWeight.w700, color: gc.text),
+                          ),
                           const SizedBox(height: 2),
-                          Text(t.photoCount(fit.shotCount),
-                              style: AppTheme.s(12, color: gc.textSecondary)),
+                          Text(t.photoCount(fit.shotCount), style: AppTheme.s(12, color: gc.textSecondary)),
                         ],
                       ),
                     ),
@@ -521,8 +639,10 @@ class ProgressScreen extends StatelessWidget {
                     const SizedBox(width: 14),
                     Expanded(
                       flex: 3,
-                      child: Text(t.compareNeedTwo,
-                          style: AppTheme.s(12.5, color: gc.textSecondary, height: 1.45)),
+                      child: Text(
+                        t.compareNeedTwo,
+                        style: AppTheme.s(12.5, color: gc.textSecondary, height: 1.45),
+                      ),
                     ),
                   ],
                 ],
@@ -547,9 +667,13 @@ class ProgressScreen extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: path == null
             ? Icon(PhosphorIconsRegular.imageSquare, size: 16, color: gc.textTertiary)
-            : Image.file(File(path), fit: BoxFit.cover, gaplessPlayback: true,
+            : Image.file(
+                File(path),
+                fit: BoxFit.cover,
+                gaplessPlayback: true,
                 errorBuilder: (_, _, _) =>
-                    Icon(PhosphorIconsRegular.imageSquare, size: 16, color: gc.textTertiary)),
+                    Icon(PhosphorIconsRegular.imageSquare, size: 16, color: gc.textTertiary),
+              ),
       ),
     );
   }
@@ -567,9 +691,10 @@ class ProgressScreen extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(t.measures,
-                      style: AppTheme.d(14,
-                          weight: FontWeight.w600, color: gc.text, letterSpacing: 1)),
+                  child: Text(
+                    t.measures,
+                    style: AppTheme.d(14, weight: FontWeight.w600, color: gc.text, letterSpacing: 1),
+                  ),
                 ),
                 Icon(PhosphorIconsRegular.caretRight, size: 15, color: gc.textTertiary),
               ],
@@ -581,9 +706,7 @@ class ProgressScreen extends StatelessWidget {
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
-                children: [
-                  for (final key in tracked.take(6)) _measureChip(gc, key),
-                ],
+                children: [for (final key in tracked.take(6)) _measureChip(gc, key)],
               ),
           ],
         ),
@@ -595,18 +718,19 @@ class ProgressScreen extends StatelessWidget {
     final latest = fit.latestMeasure(key)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-      decoration: BoxDecoration(
-        color: gc.bgRaised2,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: gc.bgRaised2, borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(t.measureName(key),
-              style: AppTheme.s(10.5, weight: FontWeight.w600, color: gc.textTertiary)),
+          Text(
+            t.measureName(key),
+            style: AppTheme.s(10.5, weight: FontWeight.w600, color: gc.textTertiary),
+          ),
           const SizedBox(height: 3),
-          Text(fit.measureLabel(key, latest.value),
-              style: AppTheme.d(15, weight: FontWeight.w700, color: gc.text)),
+          Text(
+            fit.measureLabel(key, latest.value),
+            style: AppTheme.d(15, weight: FontWeight.w700, color: gc.text),
+          ),
         ],
       ),
     );
@@ -622,12 +746,18 @@ class ProgressScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-              child: Text(t.catalogName(pr.id, pr.name),
-                  style: AppTheme.s(14, weight: FontWeight.w500, color: gc.text))),
+            child: Text(
+              t.catalogName(pr.id, pr.name),
+              style: AppTheme.s(14, weight: FontWeight.w500, color: gc.text),
+            ),
+          ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(fit.weightLabel(pr.topWeight), style: AppTheme.d(18, weight: FontWeight.w700, color: gc.text)),
+              Text(
+                fit.weightLabel(pr.topWeight),
+                style: AppTheme.d(18, weight: FontWeight.w700, color: gc.text),
+              ),
               Text(t.oneRmEst(fit.weightLabel(pr.oneRm)), style: AppTheme.s(11, color: gc.textSecondary)),
             ],
           ),
@@ -639,8 +769,13 @@ class ProgressScreen extends StatelessWidget {
   Widget bwRow(BuildContext context, GymColors gc, BodyweightEntry e) {
     return Row(
       children: [
-        Expanded(child: Text(t.shortDateYear(e.date), style: AppTheme.s(12, color: gc.textSecondary))),
-        Text(fit.weightLabel(e.kg), style: AppTheme.s(13, weight: FontWeight.w600, color: gc.text)),
+        Expanded(
+          child: Text(t.shortDateYear(e.date), style: AppTheme.s(12, color: gc.textSecondary)),
+        ),
+        Text(
+          fit.weightLabel(e.kg),
+          style: AppTheme.s(13, weight: FontWeight.w600, color: gc.text),
+        ),
         Semantics(
           button: true,
           label: '${t.delete} ${fit.weightLabel(e.kg)}',
@@ -659,10 +794,14 @@ class ProgressScreen extends StatelessWidget {
   }
 
   void _showDay(BuildContext context, int index) {
-    final date = fit.heatmapDate(index);
+    _showDate(context, fit.heatmapDate(index));
+  }
+
+  void _showDate(BuildContext context, DateTime date) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (_) => _DaySheet(date: date),
     );
   }
@@ -690,9 +829,9 @@ class _MuscleMapCardState extends State<_MuscleMapCard> {
   String? _focus;
 
   void _setDays(int d) => setState(() {
-        _days = d;
-        _focus = null;
-      });
+    _days = d;
+    _focus = null;
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -710,8 +849,10 @@ class _MuscleMapCardState extends State<_MuscleMapCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(t.muscleMap,
-                  style: AppTheme.f(10, weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 0.9)),
+              Text(
+                t.muscleMap,
+                style: AppTheme.f(10, weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 0.9),
+              ),
               SegToggle(
                 [
                   SegOption(t.days7, _days == 7, () => _setDays(7)),
@@ -730,24 +871,26 @@ class _MuscleMapCardState extends State<_MuscleMapCard> {
             onTap: (id) => setState(() => _focus = focus == id ? null : id),
           ),
           const SizedBox(height: 16),
-          Row(children: [
-            Text(t.heatLow, style: AppTheme.s(11, color: gc.textTertiary)),
-            const SizedBox(width: 8),
-            for (int i = 0; i <= heatLevels; i++) ...[
-              if (i > 0) const SizedBox(width: 3),
-              Expanded(
-                child: Container(
-                  height: 7,
-                  decoration: BoxDecoration(
-                    color: heatLevelColor(gc, i),
-                    borderRadius: BorderRadius.circular(2),
+          Row(
+            children: [
+              Text(t.heatLow, style: AppTheme.s(11, color: gc.textTertiary)),
+              const SizedBox(width: 8),
+              for (int i = 0; i <= heatLevels; i++) ...[
+                if (i > 0) const SizedBox(width: 3),
+                Expanded(
+                  child: Container(
+                    height: 7,
+                    decoration: BoxDecoration(
+                      color: heatLevelColor(gc, i),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
+              ],
+              const SizedBox(width: 8),
+              Text(t.heatHigh, style: AppTheme.s(11, color: gc.textTertiary)),
             ],
-            const SizedBox(width: 8),
-            Text(t.heatHigh, style: AppTheme.s(11, color: gc.textTertiary)),
-          ]),
+          ),
           const SizedBox(height: 14),
           Container(
             constraints: const BoxConstraints(minHeight: 36),
@@ -758,8 +901,8 @@ class _MuscleMapCardState extends State<_MuscleMapCard> {
                     sets.isEmpty
                         ? t.muscleMapEmpty
                         : behind.isEmpty
-                            ? t.muscleMapHint
-                            : t.muscleMapBehind(behind.map(t.muscle).join(' · ')),
+                        ? t.muscleMapHint
+                        : t.muscleMapBehind(behind.map(t.muscle).join(' · ')),
                     style: AppTheme.s(13, color: gc.textSecondary),
                   ),
           ),
@@ -769,20 +912,27 @@ class _MuscleMapCardState extends State<_MuscleMapCard> {
   }
 
   Widget _readout(GymColors gc, String id, double sets, double heat) {
-    return Row(children: [
-      Container(
-        width: 10,
-        height: 10,
-        decoration: BoxDecoration(color: heatColor(gc, heat), shape: BoxShape.circle),
-      ),
-      const SizedBox(width: 8),
-      Text(t.muscle(id), style: AppTheme.s(13, weight: FontWeight.w600, color: gc.text)),
-      const SizedBox(width: 8),
-      Expanded(
-        child: Text('${t.setCount(sets.round())} · ${t.ofTarget((heat * 100).round())}',
-            style: AppTheme.s(13, color: gc.textSecondary)),
-      ),
-    ]);
+    return Row(
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: heatColor(gc, heat), shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          t.muscle(id),
+          style: AppTheme.s(13, weight: FontWeight.w600, color: gc.text),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            '${t.setCount(sets.round())} · ${t.ofTarget((heat * 100).round())}',
+            style: AppTheme.s(13, color: gc.textSecondary),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -798,12 +948,13 @@ class _StrengthCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(t.strength1rm,
-              style: AppTheme.f(10, weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 0.9)),
+          Text(
+            t.strength1rm,
+            style: AppTheme.f(10, weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 0.9),
+          ),
           const SizedBox(height: 14),
           if (id == null)
-            Text(t.strengthEmpty,
-                style: AppTheme.s(13, color: gc.textSecondary))
+            Text(t.strengthEmpty, style: AppTheme.s(13, color: gc.textSecondary))
           else
             ..._chart(gc, id, tracked),
         ],
@@ -811,11 +962,7 @@ class _StrengthCard extends StatelessWidget {
     );
   }
 
-  List<Widget> _chart(
-    GymColors gc,
-    String id,
-    List<({String id, String name, int sessions})> tracked,
-  ) {
+  List<Widget> _chart(GymColors gc, String id, List<({String id, String name, int sessions})> tracked) {
     final series = fit.oneRmSeries(id);
     final first = series.first, last = series.last;
     final delta = last - first;
@@ -831,8 +978,9 @@ class _StrengthCard extends StatelessWidget {
               style: AppTheme.d(32, weight: FontWeight.w700, color: gc.text),
               children: [
                 TextSpan(
-                    text: ' ${fit.units}',
-                    style: AppTheme.d(15, weight: FontWeight.w700, color: gc.textSecondary)),
+                  text: ' ${fit.units}',
+                  style: AppTheme.d(15, weight: FontWeight.w700, color: gc.textSecondary),
+                ),
               ],
             ),
           ),
@@ -843,9 +991,13 @@ class _StrengthCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                    color: up ? gc.sageSoft : gc.accentSoft, borderRadius: BorderRadius.circular(8)),
-                child: Text('${up ? '+' : ''}${fit.weightLabel(delta)}',
-                    style: AppTheme.s(11, weight: FontWeight.w600, color: up ? gc.sage : gc.accent)),
+                  color: up ? gc.sageSoft : gc.accentSoft,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${up ? '+' : ''}${fit.weightLabel(delta)}',
+                  style: AppTheme.s(11, weight: FontWeight.w600, color: up ? gc.sage : gc.accent),
+                ),
               ),
             ),
         ],
@@ -855,20 +1007,22 @@ class _StrengthCard extends StatelessWidget {
       const SizedBox(height: 12),
       SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        child: Row(children: [
-          for (final e in tracked.take(8)) ...[
-            Pill(
-              label: t.catalogName(e.id, e.name),
-              bg: e.id == id ? gc.ember : gc.bgRaised2,
-              fg: e.id == id ? gc.onEmber : gc.textSecondary,
-              onTap: () => fit.setStrengthExercise(e.id),
-              hPad: 12,
-              vPad: 7,
-              fontSize: 12,
-            ),
-            const SizedBox(width: 8),
+        child: Row(
+          children: [
+            for (final e in tracked.take(8)) ...[
+              Pill(
+                label: t.catalogName(e.id, e.name),
+                bg: e.id == id ? gc.ember : gc.bgRaised2,
+                fg: e.id == id ? gc.onEmber : gc.textSecondary,
+                onTap: () => fit.setStrengthExercise(e.id),
+                hPad: 12,
+                vPad: 7,
+                fontSize: 12,
+              ),
+              const SizedBox(width: 8),
+            ],
           ],
-        ]),
+        ),
       ),
     ];
   }
@@ -902,23 +1056,27 @@ class _DaySheet extends StatelessWidget {
           children: [
             const SheetHandle(),
             const SizedBox(height: 18),
-            Text(t.longDate(date),
-                style: AppTheme.d(20, weight: FontWeight.w700, color: gc.text)),
+            Text(
+              t.longDate(date),
+              style: AppTheme.d(20, weight: FontWeight.w700, color: gc.text),
+            ),
             const SizedBox(height: 14),
             if (s == null)
               Text(t.restDay, style: AppTheme.s(14, color: gc.textSecondary))
             else ...[
-              Row(children: [
-                Expanded(child: _stat(gc, t.exercisesCaps, '${s.exercises}')),
-                const SizedBox(width: 10),
-                Expanded(child: _stat(gc, t.setsCaps, '${s.sets}')),
-                const SizedBox(width: 10),
-                Expanded(child: _stat(gc, t.volume, fit.volumeLabel(s.volume))),
-                if (s.durationSec > 0) ...[
+              Row(
+                children: [
+                  Expanded(child: _stat(gc, t.exercisesCaps, '${s.exercises}')),
                   const SizedBox(width: 10),
-                  Expanded(child: _stat(gc, t.timeCaps, '${s.durationSec ~/ 60}m')),
+                  Expanded(child: _stat(gc, t.setsCaps, '${s.sets}')),
+                  const SizedBox(width: 10),
+                  Expanded(child: _stat(gc, t.volume, fit.volumeLabel(s.volume))),
+                  if (s.durationSec > 0) ...[
+                    const SizedBox(width: 10),
+                    Expanded(child: _stat(gc, t.timeCaps, '${s.durationSec ~/ 60}m')),
+                  ],
                 ],
-              ]),
+              ),
               const SizedBox(height: 16),
               Text(t.tapToEdit, style: AppTheme.s(11, color: gc.textTertiary)),
               const SizedBox(height: 10),
@@ -967,16 +1125,18 @@ class _DaySheet extends StatelessWidget {
               onTap: () => _confirmResume(context, s),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                decoration: BoxDecoration(
-                  color: gc.emberSoft,
-                  borderRadius: BorderRadius.circular(100),
+                decoration: BoxDecoration(color: gc.emberSoft, borderRadius: BorderRadius.circular(100)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(PhosphorIconsFill.play, size: 11, color: gc.ember),
+                    const SizedBox(width: 6),
+                    Text(
+                      t.continueWorkout,
+                      style: AppTheme.d(11, weight: FontWeight.w700, color: gc.ember, letterSpacing: 1),
+                    ),
+                  ],
                 ),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(PhosphorIconsFill.play, size: 11, color: gc.ember),
-                  const SizedBox(width: 6),
-                  Text(t.continueWorkout,
-                      style: AppTheme.d(11, weight: FontWeight.w700, color: gc.ember, letterSpacing: 1)),
-                ]),
               ),
             ),
         ],
@@ -1016,7 +1176,10 @@ class _DaySheet extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(t.catalogName(e.id, e.name), style: AppTheme.s(13, weight: FontWeight.w600, color: gc.text)),
+                Text(
+                  t.catalogName(e.id, e.name),
+                  style: AppTheme.s(13, weight: FontWeight.w600, color: gc.text),
+                ),
                 const SizedBox(height: 2),
                 Text(detail, style: AppTheme.s(11, color: gc.textSecondary)),
               ],
@@ -1072,13 +1235,23 @@ class _DaySheet extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          fit1(Text(label,
+          fit1(
+            Text(
+              label,
               maxLines: 1,
               softWrap: false,
-              style: AppTheme.s(9, weight: FontWeight.w600, color: gc.textSecondary, letterSpacing: 1))),
+              style: AppTheme.s(9, weight: FontWeight.w600, color: gc.textSecondary, letterSpacing: 1),
+            ),
+          ),
           const SizedBox(height: 4),
-          fit1(Text(value,
-              maxLines: 1, softWrap: false, style: AppTheme.d(17, weight: FontWeight.w700, color: gc.text))),
+          fit1(
+            Text(
+              value,
+              maxLines: 1,
+              softWrap: false,
+              style: AppTheme.d(17, weight: FontWeight.w700, color: gc.text),
+            ),
+          ),
         ],
       ),
     );
@@ -1101,7 +1274,12 @@ class _LogBodyweightSheetState extends State<_LogBodyweightSheet> {
   Widget build(BuildContext context) {
     final gc = context.gc;
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + MediaQuery.of(context).viewInsets.bottom + MediaQuery.paddingOf(context).bottom),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        12,
+        20,
+        20 + MediaQuery.of(context).viewInsets.bottom + MediaQuery.paddingOf(context).bottom,
+      ),
       decoration: BoxDecoration(
         color: gc.bgRaised,
         border: Border.all(color: gc.border),
@@ -1112,8 +1290,10 @@ class _LogBodyweightSheetState extends State<_LogBodyweightSheet> {
         children: [
           const SheetHandle(),
           const SizedBox(height: 18),
-          Text(t.logBodyweight,
-              style: AppTheme.d(14, weight: FontWeight.w600, color: gc.text, letterSpacing: 2)),
+          Text(
+            t.logBodyweight,
+            style: AppTheme.d(14, weight: FontWeight.w600, color: gc.text, letterSpacing: 2),
+          ),
           const SizedBox(height: 4),
           Text(t.trackWeight, style: AppTheme.s(13, color: gc.textSecondary)),
           const SizedBox(height: 22),
@@ -1124,9 +1304,11 @@ class _LogBodyweightSheetState extends State<_LogBodyweightSheet> {
               const SizedBox(width: 22),
               SizedBox(
                 width: 130,
-                child: Text('${fmt(_shown)} ${fit.units}',
-                    textAlign: TextAlign.center,
-                    style: AppTheme.d(40, weight: FontWeight.w700, color: gc.text)),
+                child: Text(
+                  '${fmt(_shown)} ${fit.units}',
+                  textAlign: TextAlign.center,
+                  style: AppTheme.d(40, weight: FontWeight.w700, color: gc.text),
+                ),
               ),
               const SizedBox(width: 22),
               _round(gc, '+', () => _bump(0.1)),
@@ -1190,7 +1372,10 @@ void showEditLoggedSheet(BuildContext context, LoggedSession s, LoggedExercise e
                 children: [
                   const SheetHandle(),
                   const SizedBox(height: 18),
-                  Text(t.catalogName(e.id, e.name), style: AppTheme.d(20, weight: FontWeight.w700, color: gc.text)),
+                  Text(
+                    t.catalogName(e.id, e.name),
+                    style: AppTheme.d(20, weight: FontWeight.w700, color: gc.text),
+                  ),
                   const SizedBox(height: 4),
                   Text(t.editEntryHint, style: AppTheme.s(12, color: gc.textSecondary)),
                   const SizedBox(height: 16),
@@ -1209,9 +1394,15 @@ void showEditLoggedSheet(BuildContext context, LoggedSession s, LoggedExercise e
                         border: Border.all(color: gc.border),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(t.addSet,
-                          style: AppTheme.s(13,
-                              weight: FontWeight.w600, color: gc.textSecondary, letterSpacing: 1)),
+                      child: Text(
+                        t.addSet,
+                        style: AppTheme.s(
+                          13,
+                          weight: FontWeight.w600,
+                          color: gc.textSecondary,
+                          letterSpacing: 1,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -1235,13 +1426,18 @@ Widget _editSetRow(GymColors gc, LoggedSession s, LoggedExercise e, int i, bool 
       children: [
         SizedBox(
           width: 22,
-          child: Text('${i + 1}', style: AppTheme.d(15, weight: FontWeight.w700, color: gc.text)),
+          child: Text(
+            '${i + 1}',
+            style: AppTheme.d(15, weight: FontWeight.w700, color: gc.text),
+          ),
         ),
         Expanded(
           child: Column(
             children: [
-              Text(t.repsCol,
-                  style: AppTheme.s(9.5, weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 1)),
+              Text(
+                t.repsCol,
+                style: AppTheme.s(9.5, weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 1),
+              ),
               const SizedBox(height: 2),
               StepperControl(
                 value: '${set.reps}',
@@ -1259,9 +1455,10 @@ Widget _editSetRow(GymColors gc, LoggedSession s, LoggedExercise e, int i, bool 
           Expanded(
             child: Column(
               children: [
-                Text(t.weightCol(fit.units.toUpperCase()),
-                    style:
-                        AppTheme.s(9.5, weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 1)),
+                Text(
+                  t.weightCol(fit.units.toUpperCase()),
+                  style: AppTheme.s(9.5, weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 1),
+                ),
                 const SizedBox(height: 2),
                 StepperControl(
                   value: fit.weightValue(set.weight),
@@ -1326,9 +1523,11 @@ class _HeatToneSheetState extends State<_HeatToneSheet> {
           const SizedBox(height: 16),
           Text(t.heatToneTitle, style: AppTheme.f(19, color: gc.text)),
           const SizedBox(height: 8),
-          Text(t.heatToneHint,
-              textAlign: TextAlign.center,
-              style: AppTheme.f(12.5, weight: FontWeight.w500, color: gc.textSecondary)),
+          Text(
+            t.heatToneHint,
+            textAlign: TextAlign.center,
+            style: AppTheme.f(12.5, weight: FontWeight.w500, color: gc.textSecondary),
+          ),
           const SizedBox(height: 20),
           for (final tone in kHeatTones)
             GestureDetector(
@@ -1340,24 +1539,27 @@ class _HeatToneSheetState extends State<_HeatToneSheet> {
                 decoration: BoxDecoration(
                   color: gc.bgRaised2,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                      color: fit.heatTone == tone ? gc.text : Colors.transparent, width: 1.4),
+                  border: Border.all(color: fit.heatTone == tone ? gc.text : Colors.transparent, width: 1.4),
                 ),
-                child: Row(children: [
-                  for (final c in heatRamp(gc, tone))
-                    Container(
-                      width: 20,
-                      height: 20,
-                      margin: const EdgeInsets.only(right: 6),
-                      decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(6)),
+                child: Row(
+                  children: [
+                    for (final c in heatRamp(gc, tone))
+                      Container(
+                        width: 20,
+                        height: 20,
+                        margin: const EdgeInsets.only(right: 6),
+                        decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(6)),
+                      ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        t.heatToneName(tone),
+                        style: AppTheme.f(14, weight: FontWeight.w600, color: gc.text),
+                      ),
                     ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(t.heatToneName(tone),
-                        style: AppTheme.f(14, weight: FontWeight.w600, color: gc.text)),
-                  ),
-                  if (fit.heatTone == tone) Icon(PhosphorIconsBold.check, size: 16, color: gc.text),
-                ]),
+                    if (fit.heatTone == tone) Icon(PhosphorIconsBold.check, size: 16, color: gc.text),
+                  ],
+                ),
               ),
             ),
         ],

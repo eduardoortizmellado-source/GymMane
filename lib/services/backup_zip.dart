@@ -9,6 +9,7 @@ import '../models/note.dart';
 import '../models/progress_shot.dart';
 import '../state/fit_state.dart';
 import 'alarm_store.dart';
+import 'health_store.dart';
 import 'media_store.dart';
 
 const String kBackupJsonEntry = 'gymmane.json';
@@ -18,6 +19,7 @@ const String _notesDir = 'media/notes';
 const String _timelineDir = 'timeline';
 const String _momentsDir = 'moments';
 const String _alarmDir = 'alarm';
+const String _healthDbEntry = 'health/gymmane_health_v1.db';
 
 bool looksLikeZip(Uint8List b) =>
     b.length > 4 && b[0] == 0x50 && b[1] == 0x4B && (b[2] == 0x03 || b[2] == 0x05 || b[2] == 0x07);
@@ -88,6 +90,11 @@ Future<Uint8List> buildBackupZip() async {
       final bytes = await File(alarmPath).readAsBytes();
       archive.addFile(ArchiveFile.noCompress('$_alarmDir/$alarm', bytes.length, bytes));
     } catch (_) {}
+  }
+
+  final healthDb = await HealthStore.instance.exportBytes();
+  if (healthDb != null && healthDb.isNotEmpty) {
+    archive.addFile(ArchiveFile.noCompress(_healthDbEntry, healthDb.length, healthDb));
   }
 
   archive.addFile(
@@ -168,6 +175,11 @@ Future<bool> restoreBackupZip(Uint8List zipBytes) async {
   if (alarmName != null && alarmName.isNotEmpty) {
     final bytes = archive.findFile('$_alarmDir/$alarmName')?.readBytes();
     if (bytes != null) alarmBase = await AlarmStore.saveBytes(alarmName, bytes);
+  }
+
+  final healthDb = archive.findFile(_healthDbEntry)?.readBytes();
+  if (healthDb != null && healthDb.isNotEmpty) {
+    await HealthStore.instance.restoreBytes(Uint8List.fromList(healthDb));
   }
 
   fit.applyBackup(data,

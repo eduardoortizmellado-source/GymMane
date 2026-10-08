@@ -54,14 +54,14 @@ jobs:
 
       # ABI splits keep each APK small instead of one fat APK.
       - name: Build split APKs
-        run: flutter build apk --release --split-per-abi
+        run: flutter build apk --flavor foss --release --split-per-abi
 
       - name: Rename APKs
         run: |
           cd build/app/outputs/flutter-apk
-          mv app-arm64-v8a-release.apk     GymMane-arm64-v8a.apk
-          mv app-armeabi-v7a-release.apk   GymMane-armeabi-v7a.apk
-          mv app-x86_64-release.apk        GymMane-x86_64.apk
+          mv app-foss-arm64-v8a-release.apk     GymMane-arm64-v8a.apk
+          mv app-foss-armeabi-v7a-release.apk   GymMane-armeabi-v7a.apk
+          mv app-foss-x86_64-release.apk        GymMane-x86_64.apk
 
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
@@ -134,14 +134,14 @@ jobs:
       # --split-debug-info moves the path-laden debug symbols out of libapp.so so
       # it builds deterministically. F-Droid uses the same flag.
       - name: Build split APKs
-        run: flutter build apk --release --split-per-abi --split-debug-info=build/symbols
+        run: flutter build apk --flavor foss --release --split-per-abi --split-debug-info=build/symbols
 
       - name: Rename APKs
         run: |
           cd build/app/outputs/flutter-apk
-          mv app-arm64-v8a-release.apk     GymMane-arm64-v8a.apk
-          mv app-armeabi-v7a-release.apk   GymMane-armeabi-v7a.apk
-          mv app-x86_64-release.apk        GymMane-x86_64.apk
+          mv app-foss-arm64-v8a-release.apk     GymMane-arm64-v8a.apk
+          mv app-foss-armeabi-v7a-release.apk   GymMane-armeabi-v7a.apk
+          mv app-foss-x86_64-release.apk        GymMane-x86_64.apk
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2

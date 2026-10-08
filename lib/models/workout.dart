@@ -6,11 +6,19 @@ SetKind setKindFrom(Object? raw) {
 }
 
 class LoggedSet {
-  LoggedSet(this.reps, this.weight, {this.kind = SetKind.normal, this.rpe});
+  LoggedSet(this.reps, this.weight,
+      {this.kind = SetKind.normal,
+      this.rpe,
+      this.id,
+      this.startedAt,
+      this.completedAt});
   final int reps;
   final double weight;
   final SetKind kind;
   final double? rpe;
+  final String? id;
+  final DateTime? startedAt;
+  final DateTime? completedAt;
 
   bool get counts => kind != SetKind.warmup;
   double get volume => reps * weight;
@@ -18,16 +26,22 @@ class LoggedSet {
   double get oneRm => weight * (1 + reps / 30);
 
   Map<String, dynamic> toJson() => {
+        if (id != null) 'id': id,
         'r': reps,
         'w': weight,
         if (kind != SetKind.normal) 'k': kind.index,
         if (rpe != null) 'e': rpe,
+        if (startedAt != null) 'sa': startedAt!.toIso8601String(),
+        if (completedAt != null) 'ca': completedAt!.toIso8601String(),
       };
   factory LoggedSet.fromJson(Map<String, dynamic> j) => LoggedSet(
         (j['r'] as num).toInt(),
         (j['w'] as num).toDouble(),
         kind: setKindFrom(j['k']),
         rpe: (j['e'] as num?)?.toDouble(),
+        id: j['id'] as String?,
+        startedAt: DateTime.tryParse((j['sa'] as String?) ?? ''),
+        completedAt: DateTime.tryParse((j['ca'] as String?) ?? ''),
       );
 }
 
@@ -66,15 +80,19 @@ class LoggedExercise {
 }
 
 class LoggedSession {
-  LoggedSession(this.date, this.durationSec, this.exercises);
+  LoggedSession(this.date, this.durationSec, this.exercises, {this.id, this.telemetryId});
   final DateTime date;
   final int durationSec;
   final List<LoggedExercise> exercises;
+  final String? id;
+  final String? telemetryId;
 
   double get volume => exercises.fold(0.0, (s, e) => s + e.volume);
   int get setCount => exercises.fold(0, (s, e) => s + e.workingSets.length);
 
   Map<String, dynamic> toJson() => {
+        if (id != null) 'id': id,
+        if (telemetryId != null) 'tid': telemetryId,
         'd': date.toIso8601String(),
         'dur': durationSec,
         'ex': exercises.map((e) => e.toJson()).toList(),
@@ -83,6 +101,8 @@ class LoggedSession {
         DateTime.parse(j['d'] as String),
         (j['dur'] as num?)?.toInt() ?? 0,
         (j['ex'] as List).map((e) => LoggedExercise.fromJson(e as Map<String, dynamic>)).toList(),
+        id: j['id'] as String?,
+        telemetryId: j['tid'] as String?,
       );
 }
 

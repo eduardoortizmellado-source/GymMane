@@ -619,6 +619,30 @@ abstract class AppLocalizations {
   /// **'Mark set {n} as done'**
   String markSet(int n);
 
+  /// No description provided for @startSet.
+  ///
+  /// In en, this message translates to:
+  /// **'START SET'**
+  String get startSet;
+
+  /// No description provided for @finishSet.
+  ///
+  /// In en, this message translates to:
+  /// **'FINISH SET'**
+  String get finishSet;
+
+  /// No description provided for @cancelSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel set'**
+  String get cancelSet;
+
+  /// No description provided for @setInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Set in progress'**
+  String get setInProgress;
+
   /// No description provided for @pauseWorkout.
   ///
   /// In en, this message translates to:
@@ -1260,6 +1284,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No kit'**
   String get noGearOnly;
+
+  /// No description provided for @recent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get recent;
 
   /// No description provided for @placeActive.
   ///
@@ -4480,7 +4510,7 @@ abstract class AppLocalizations {
   /// No description provided for @pickExercisesOption.
   ///
   /// In en, this message translates to:
-  /// **'Pick exercises'**
+  /// **'Build a workout'**
   String get pickExercisesOption;
 
   /// No description provided for @chooseFocusOption.

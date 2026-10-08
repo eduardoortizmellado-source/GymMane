@@ -39,6 +39,16 @@ android {
         versionName = flutter.versionName
     }
 
+    flavorDimensions += "edition"
+    productFlavors {
+        create("foss") {
+            dimension = "edition"
+        }
+        create("personal") {
+            dimension = "edition"
+        }
+    }
+
     // F-Droid: fuera el bloque de "Dependency metadata" de Google, que va firmado
     // y rompe la compilación reproducible.
     dependenciesInfo {
@@ -84,6 +94,7 @@ android.applicationVariants.configureEach {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    "personalImplementation"("com.google.android.gms:play-services-wearable:20.0.1")
 }
 
 flutter {

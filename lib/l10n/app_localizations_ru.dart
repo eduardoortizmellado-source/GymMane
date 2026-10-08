@@ -325,6 +325,18 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get startSet => 'НАЧАТЬ ПОДХОД';
+
+  @override
+  String get finishSet => 'ЗАВЕРШИТЬ ПОДХОД';
+
+  @override
+  String get cancelSet => 'Отменить подход';
+
+  @override
+  String get setInProgress => 'Подход выполняется';
+
+  @override
   String get pauseWorkout => 'Поставить тренировку на паузу';
 
   @override
@@ -699,6 +711,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get noGearOnly => 'Без инвентаря';
+
+  @override
+  String get recent => 'Недавние';
 
   @override
   String placeActive(String name) {
@@ -2592,7 +2607,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get orStartFrom => 'Или начни с';
 
   @override
-  String get pickExercisesOption => 'Выбрать упражнения';
+  String get pickExercisesOption => 'Собрать тренировку';
 
   @override
   String get chooseFocusOption => 'Выбрать по мышцам';

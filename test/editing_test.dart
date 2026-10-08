@@ -79,6 +79,23 @@ void main() {
     expect(today.first.exercises.first.name, 'A');
   });
 
+  test('recent exercises are ordered by the last time they were performed', () {
+    final older = fit.exerciseById('EIeI8Vf')!;
+    final newer = fit.exerciseById('SpYC0Kp')!;
+    fit.sessions
+      ..add(LoggedSession(DateTime.now().subtract(const Duration(days: 4)), 600, [
+        LoggedExercise(older.id, older.name, older.primary, [LoggedSet(8, 40)]),
+      ]))
+      ..add(LoggedSession(DateTime.now(), 600, [
+        LoggedExercise(newer.id, newer.name, newer.primary, [LoggedSet(8, 50)]),
+      ]));
+
+    fit.clearExFilters();
+    fit.toggleRecentFilter();
+
+    expect(fit.exercisesFiltered.take(2).map((e) => e.id), [newer.id, older.id]);
+  });
+
   test('a bad bodyweight entry can be deleted and the profile heals', () {
     fit.addBodyweight(75);
     fit.addBodyweight(750);

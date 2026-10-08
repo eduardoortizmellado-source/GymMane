@@ -307,6 +307,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get startSet => 'START SET';
+
+  @override
+  String get finishSet => 'FINISH SET';
+
+  @override
+  String get cancelSet => 'Cancel set';
+
+  @override
+  String get setInProgress => 'Set in progress';
+
+  @override
   String get pauseWorkout => 'Pause workout';
 
   @override
@@ -675,6 +687,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noGearOnly => 'No kit';
+
+  @override
+  String get recent => 'Recent';
 
   @override
   String placeActive(String name) {
@@ -2513,7 +2528,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orStartFrom => 'Or start from';
 
   @override
-  String get pickExercisesOption => 'Pick exercises';
+  String get pickExercisesOption => 'Build a workout';
 
   @override
   String get chooseFocusOption => 'Choose a focus';

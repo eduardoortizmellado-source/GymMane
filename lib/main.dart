@@ -5,6 +5,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'app/gymmane_app.dart';
 import 'services/alarm_store.dart';
 import 'services/home_widget_bridge.dart';
+import 'services/health_store.dart';
 import 'services/local_store.dart';
 import 'services/media_store.dart';
 import 'services/rest_alarm.dart';
@@ -23,6 +24,7 @@ Future<void> main() async {
 
   await initializeDateFormatting();
   await Store.instance.init();
+  await HealthStore.instance.init();
   await MediaStore.init();
   await AlarmStore.init();
   fit.loadFromStore();

@@ -133,11 +133,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
               children: [
                 Positioned.fill(child: ColoredBox(color: context.gc.bg)),
                 Positioned.fill(
-                  child: AppBackground(
-                    pattern: fit.bgPattern,
-                    photo: fit.bgPhotoPath,
-                    dim: fit.bgDim,
-                  ),
+                  child: AppBackground(pattern: fit.bgPattern, photo: fit.bgPhotoPath, dim: fit.bgDim),
                 ),
                 Scaffold(
                   backgroundColor: Colors.transparent,
@@ -204,8 +200,10 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         } else {
           begin = Offset.zero;
         }
-        final slide = Tween<Offset>(begin: begin, end: Offset.zero)
-            .animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+        final slide = Tween<Offset>(
+          begin: begin,
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
         return FadeTransition(
           opacity: animation,
           child: AnimatedBuilder(
@@ -351,20 +349,45 @@ class _NavBar extends StatelessWidget {
                   bottom: 10,
                   width: _iw,
                   child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: gc.bgRaised2,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
+                    decoration: BoxDecoration(color: gc.bgRaised2, borderRadius: BorderRadius.circular(18)),
                   ),
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _item(context, 0, PhosphorIconsRegular.house, PhosphorIconsFill.house, t.home, fit.goHome),
-                    _item(context, 1, PhosphorIconsRegular.chartLineUp, PhosphorIconsFill.chartLineUp, t.progress, fit.goProgress),
+                    _item(
+                      context,
+                      0,
+                      PhosphorIconsRegular.house,
+                      PhosphorIconsFill.house,
+                      t.home,
+                      fit.goHome,
+                    ),
+                    _item(
+                      context,
+                      1,
+                      PhosphorIconsRegular.chartLineUp,
+                      PhosphorIconsFill.chartLineUp,
+                      t.progress,
+                      fit.goProgress,
+                    ),
                     _fab(context),
-                    _item(context, 2, PhosphorIconsRegular.barbell, PhosphorIconsFill.barbell, t.exercises, fit.goExercises),
-                    _item(context, 3, PhosphorIconsRegular.userCircle, PhosphorIconsFill.userCircle, t.profile, fit.goSettings),
+                    _item(
+                      context,
+                      2,
+                      PhosphorIconsRegular.barbell,
+                      PhosphorIconsFill.barbell,
+                      t.exercises,
+                      fit.goExercises,
+                    ),
+                    _item(
+                      context,
+                      3,
+                      PhosphorIconsRegular.userCircle,
+                      PhosphorIconsFill.userCircle,
+                      t.profile,
+                      fit.goSettings,
+                    ),
                   ],
                 ),
               ],
@@ -375,7 +398,14 @@ class _NavBar extends StatelessWidget {
     );
   }
 
-  Widget _item(BuildContext context, int index, IconData icon, IconData iconFill, String label, VoidCallback onTap) {
+  Widget _item(
+    BuildContext context,
+    int index,
+    IconData icon,
+    IconData iconFill,
+    String label,
+    VoidCallback onTap,
+  ) {
     final gc = context.gc;
     final selected = _selectedIndex == index;
     final color = selected ? gc.text : gc.textTertiary;
@@ -393,11 +423,8 @@ class _NavBar extends StatelessWidget {
               tween: Tween(begin: selected ? 1 : 0, end: selected ? 1 : 0),
               duration: dur,
               curve: Curves.easeOut,
-              builder: (context, t, _) => Icon(
-                selected ? iconFill : icon,
-                size: 22,
-                color: Color.lerp(gc.textTertiary, gc.text, t),
-              ),
+              builder: (context, t, _) =>
+                  Icon(selected ? iconFill : icon, size: 22, color: Color.lerp(gc.textTertiary, gc.text, t)),
             ),
             const SizedBox(height: 3),
             Padding(
@@ -419,11 +446,6 @@ class _NavBar extends StatelessWidget {
   }
 
   void _play(BuildContext context) {
-    final planned = fit.todayRoutine;
-    if (planned != null && planned.exerciseIds.isNotEmpty) {
-      fit.startRoutine(planned);
-      return;
-    }
     showStartSheet(context);
   }
 

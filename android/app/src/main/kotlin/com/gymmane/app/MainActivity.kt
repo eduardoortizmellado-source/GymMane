@@ -31,6 +31,24 @@ class MainActivity : FlutterActivity() {
                     result.error("save-failed", e.message, null)
                 }
             }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "gymmane/watch")
+            .setMethodCallHandler { call, result ->
+                try {
+                    val bridge = Class.forName("com.gymmane.app.personal.WearBridge")
+                    val method = bridge.getMethod(
+                        "send",
+                        android.content.Context::class.java,
+                        String::class.java,
+                        String::class.java,
+                    )
+                    val payload = call.argument<String>("sessionId") ?: ""
+                    result.success(method.invoke(null, this, call.method, payload) as Boolean)
+                } catch (_: ClassNotFoundException) {
+                    result.success(false)
+                } catch (e: Exception) {
+                    result.error("watch-command", e.cause?.message ?: e.message, null)
+                }
+            }
     }
 
     private fun savePng(bytes: ByteArray, name: String): Boolean {

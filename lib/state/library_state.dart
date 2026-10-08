@@ -40,6 +40,7 @@ mixin LibraryState on FitCore {
     exDifficultyFilter = null;
     exEquipmentFilter = null;
     exFavouritesOnly = false;
+    exRecentOnly = false;
     notifyListeners();
   }
 
@@ -59,10 +60,27 @@ mixin LibraryState on FitCore {
   }
 
   bool exFavouritesOnly = false;
+  bool exRecentOnly = false;
 
   void toggleFavouritesFilter() {
     exFavouritesOnly = !exFavouritesOnly;
     notifyListeners();
+  }
+
+  void toggleRecentFilter() {
+    exRecentOnly = !exRecentOnly;
+    notifyListeners();
+  }
+
+  List<String> get recentExerciseIds {
+    final ordered = [...sessions]..sort((a, b) => b.date.compareTo(a.date));
+    final ids = <String>[];
+    for (final session in ordered) {
+      for (final exercise in session.exercises) {
+        if (!ids.contains(exercise.id)) ids.add(exercise.id);
+      }
+    }
+    return ids;
   }
 
   int get favouriteCount => favorites.values.where((v) => v).length;
@@ -71,18 +89,24 @@ mixin LibraryState on FitCore {
 
   List<Exercise> exercisesMatching(String query) {
     final matchesSearch = exerciseSearch(query);
+    final recent = recentExerciseIds;
+    final recentSet = recent.toSet();
     final list = allExercises.where((ex) {
       if (exFavouritesOnly && favorites[ex.id] != true) return false;
+      if (exRecentOnly && !recentSet.contains(ex.id)) return false;
       if (!matchesSearch(ex)) return false;
-      if (exMuscleFilter != null &&
-          ex.primary != exMuscleFilter &&
-          !ex.secondary.contains(exMuscleFilter)) {
+      if (exMuscleFilter != null && ex.primary != exMuscleFilter && !ex.secondary.contains(exMuscleFilter)) {
         return false;
       }
       if (exDifficultyFilter != null && ex.difficulty != exDifficultyFilter) return false;
       if (exEquipmentFilter != null && ex.equipment != exEquipmentFilter) return false;
       return true;
     }).toList();
+    if (exRecentOnly) {
+      final rank = {for (var i = 0; i < recent.length; i++) recent[i]: i};
+      list.sort((a, b) => (rank[a.id] ?? recent.length).compareTo(rank[b.id] ?? recent.length));
+      return list;
+    }
     final muscle = exMuscleFilter;
     if (muscle == null) return _groupedByMuscle(list);
     final primary = list.where((ex) => ex.primary == muscle);
@@ -95,20 +119,16 @@ mixin LibraryState on FitCore {
     final seats = [
       for (var i = 0; i < list.length; i++)
         (ex: list[i], muscle: order[list[i].primary] ?? kMuscles.length, seat: i),
-    ]..sort((a, b) =>
-        a.muscle == b.muscle ? a.seat.compareTo(b.seat) : a.muscle.compareTo(b.muscle));
+    ]..sort((a, b) => a.muscle == b.muscle ? a.seat.compareTo(b.seat) : a.muscle.compareTo(b.muscle));
     return [for (final s in seats) s.ex];
   }
 
-  Exercise get activeExercise =>
-      exerciseById(activeExerciseId ?? '') ?? kExercises.first;
+  Exercise get activeExercise => exerciseById(activeExerciseId ?? '') ?? kExercises.first;
 
   List<String> activeExerciseSteps(Exercise ex) => exerciseSteps(ex);
 
-  List<Exercise> similarExercises(Exercise ex, int n) => allExercises
-      .where((e) => e.id != ex.id && e.primary == ex.primary)
-      .take(n)
-      .toList();
+  List<Exercise> similarExercises(Exercise ex, int n) =>
+      allExercises.where((e) => e.id != ex.id && e.primary == ex.primary).take(n).toList();
 
   String addCustomExercise({
     required String name,
@@ -117,16 +137,18 @@ mixin LibraryState on FitCore {
     String difficulty = 'Beginner',
   }) {
     final id = 'c${DateTime.now().microsecondsSinceEpoch}-${_customSeq++}';
-    customExercises.add(Exercise(
-      id: id,
-      name: name.trim(),
-      primary: primary,
-      secondary: const [],
-      equipment: equipment,
-      difficulty: difficulty,
-      art: '',
-      steps: const [],
-    ));
+    customExercises.add(
+      Exercise(
+        id: id,
+        name: name.trim(),
+        primary: primary,
+        secondary: const [],
+        equipment: equipment,
+        difficulty: difficulty,
+        art: '',
+        steps: const [],
+      ),
+    );
     _persist();
     notifyListeners();
     return id;

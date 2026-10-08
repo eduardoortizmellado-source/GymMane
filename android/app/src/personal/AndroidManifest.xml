@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <service
+            android:name="com.gymmane.app.personal.WearTelemetryService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/gymmane/telemetry/v1" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/gymmane/status/v1" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

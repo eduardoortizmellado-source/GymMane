@@ -1,0 +1,7 @@
+<resources>
+    <style name="AppTheme" parent="android:style/Theme.DeviceDefault">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#FF6B35</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

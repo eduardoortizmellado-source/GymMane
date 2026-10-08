@@ -307,6 +307,18 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get startSet => 'INIZIA SERIE';
+
+  @override
+  String get finishSet => 'TERMINA SERIE';
+
+  @override
+  String get cancelSet => 'Annulla serie';
+
+  @override
+  String get setInProgress => 'Serie in corso';
+
+  @override
   String get pauseWorkout => 'Metti in pausa l\'allenamento';
 
   @override
@@ -675,6 +687,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get noGearOnly => 'Senza attrezzi';
+
+  @override
+  String get recent => 'Recenti';
 
   @override
   String placeActive(String name) {
@@ -2515,7 +2530,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get orStartFrom => 'Oppure parti da';
 
   @override
-  String get pickExercisesOption => 'Scegli gli esercizi';
+  String get pickExercisesOption => 'Crea un allenamento';
 
   @override
   String get chooseFocusOption => 'Scegli per muscoli';

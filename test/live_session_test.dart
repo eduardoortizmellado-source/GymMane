@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gymmane/models/live_session.dart';
 import 'package:gymmane/services/local_store.dart';
 import 'package:gymmane/state/fit_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,6 +49,17 @@ void main() {
     expect(firstSet.reps, 8);
     expect(firstSet.weight, 72.5);
     expect(firstSet.done, true, reason: 'la serie marcada sigue marcada');
+  });
+
+  test('you can jump directly to any exercise without completing the previous one', () {
+    startAndLog();
+    final target = fit.session!.exercises.length - 1;
+
+    fit.goToSessionExercise(target);
+
+    expect(fit.session!.currentIndex, target);
+    expect(fit.session!.exercises[1].sets.every((set) => !set.done), true,
+        reason: 'cambiar de máquina no marca el ejercicio intermedio como terminado');
   });
 
   test('the clock keeps counting real time while the app is dead', () {
@@ -124,5 +136,46 @@ void main() {
     fit.persistNow();
     expect(Store.instance.load().containsKey('live'), false,
         reason: 'la sesión completa ya está en el historial');
+  });
+
+  test('a timed set has one active interval and finishes with timestamps', () {
+    fit.startWorkout();
+    fit.toggleMuscle('chest');
+    fit.trainContinue();
+    fit.startSession();
+
+    expect(fit.startSessionSet(0, 0), true);
+    final first = fit.session!.exercises[0].sets[0];
+    expect(first.status, SessionSetStatus.active);
+    expect(first.startedAt, isNotNull);
+    expect(fit.startSessionSet(0, 1), false,
+        reason: 'dos series no pueden compartir el mismo intervalo activo');
+
+    fit.finishSessionSet(0, 0);
+    expect(first.status, SessionSetStatus.completed);
+    expect(first.completedAt, isNotNull);
+    expect(first.durationSec, isNotNull);
+    expect(fit.activeSetLocation, isNull);
+  });
+
+  test('old live JSON remains readable and receives stable ids', () {
+    final old = WorkoutSession.fromJson({
+      'ex': [
+        {
+          'id': 'bench',
+          'n': 'Bench press',
+          'p': 'chest',
+          's': [
+            {'r': 8, 'w': 40, 'd': true}
+          ]
+        }
+      ],
+      'i': 0,
+      'c': false,
+    });
+
+    expect(old.id, isNotEmpty);
+    expect(old.exercises.single.sets.single.id, isNotEmpty);
+    expect(old.exercises.single.sets.single.status, SessionSetStatus.completed);
   });
 }

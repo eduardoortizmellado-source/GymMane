@@ -88,8 +88,7 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
         ..sort((a, b) => rank(a).compareTo(rank(b)));
       if (forMuscle.isNotEmpty) picks.add(forMuscle.first);
     }
-    final rest = pool.where((e) => !picks.contains(e)).toList()
-      ..sort((a, b) => rank(a).compareTo(rank(b)));
+    final rest = pool.where((e) => !picks.contains(e)).toList()..sort((a, b) => rank(a).compareTo(rank(b)));
     for (final e in rest) {
       if (picks.length >= _pickTarget) break;
       picks.add(e);
@@ -120,10 +119,15 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
   void startRoutine(Routine r, {DateTime? on}) {
     final exs = routineExercises(r);
     if (exs.isEmpty) return;
-    _beginSession(exs,
-        plan: {for (final ex in exs) ex.id: routineSets(r, ex.id)},
-        chained: {for (final ex in exs) if (chainsToNext(r, ex.id)) ex.id},
-        on: on);
+    _beginSession(
+      exs,
+      plan: {for (final ex in exs) ex.id: routineSets(r, ex.id)},
+      chained: {
+        for (final ex in exs)
+          if (chainsToNext(r, ex.id)) ex.id,
+      },
+      on: on,
+    );
   }
 
   void startSession() {
@@ -150,10 +154,7 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     if (count == null || count == base.length) return base;
     if (count < base.length) return base.take(count).toList();
     final fill = base.last;
-    return [
-      ...base,
-      for (var i = base.length; i < count; i++) SessionSet(fill.reps, fill.weight, false),
-    ];
+    return [...base, for (var i = base.length; i < count; i++) SessionSet(fill.reps, fill.weight, false)];
   }
 
   ({double weightKg, int reps, bool up})? nextTarget(String id) {
@@ -185,8 +186,12 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     return step;
   }
 
-  void _beginSession(List<Exercise> exs,
-      {Map<String, int>? plan, Set<String> chained = const {}, DateTime? on}) {
+  void _beginSession(
+    List<Exercise> exs, {
+    Map<String, int>? plan,
+    Set<String> chained = const {},
+    DateTime? on,
+  }) {
     final s = WorkoutSession();
     if (on != null) {
       s.loggedAt = DateTime(on.year, on.month, on.day, 12);
@@ -194,19 +199,23 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     }
     logDay = null;
     s.exercises = exs
-        .map((ex) => SessionExercise(
-              ex.id,
-              ex.name,
-              ex.primary,
-              _openingSets(ex.id, count: plan?[ex.id]),
-              linkedNext: chained.contains(ex.id),
-            ))
+        .map(
+          (ex) => SessionExercise(
+            ex.id,
+            ex.name,
+            ex.primary,
+            _openingSets(ex.id, count: plan?[ex.id]),
+            linkedNext: chained.contains(ex.id),
+          ),
+        )
         .toList();
     _restTimer?.cancel();
     _elapsedBefore = 0;
     sessionPaused = false;
     _startTicking();
     session = s;
+    unawaited(HealthStore.instance.startTelemetry(s.id, DateTime.now()));
+    unawaited(WatchBridge.start(s.id));
     route = 'session';
     persistNow();
     notifyListeners();
@@ -227,6 +236,7 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     if (sessionPaused) {
       _startTicking();
       sessionPaused = false;
+      if (s != null) unawaited(WatchBridge.resume(s.id));
       final frozen = s?.restFrozen;
       if (frozen != null) _armRest(frozen);
     } else {
@@ -240,6 +250,7 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
         s.restEndsAt = null;
       }
       sessionPaused = true;
+      if (s != null) unawaited(WatchBridge.pause(s.id));
     }
     persistNow();
     notifyListeners();
@@ -266,6 +277,15 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     final st = session!.exercises[exIdx].sets[setIdx];
     _advanceTimer?.cancel();
     st.done = !st.done;
+    if (st.done) {
+      st.startedAt ??= DateTime.now();
+      st.completedAt = DateTime.now();
+      st.cancelledAt = null;
+    } else {
+      st.startedAt = null;
+      st.completedAt = null;
+      st.cancelledAt = null;
+    }
     _persist();
     notifyListeners();
     if (!st.done) return;
@@ -276,6 +296,90 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     }
     startRest();
     if (autoAdvance) _advanceWhenDone(exIdx);
+  }
+
+  ({int exercise, int set})? get activeSetLocation {
+    final s = session;
+    if (s == null) return null;
+    for (var i = 0; i < s.exercises.length; i++) {
+      for (var j = 0; j < s.exercises[i].sets.length; j++) {
+        if (s.exercises[i].sets[j].status == SessionSetStatus.active) {
+          return (exercise: i, set: j);
+        }
+      }
+    }
+    return null;
+  }
+
+  bool startSessionSet(int exIdx, int setIdx) {
+    final s = session;
+    if (s == null || sessionPaused || s.manual) return false;
+    if (exIdx < 0 || exIdx >= s.exercises.length) return false;
+    if (setIdx < 0 || setIdx >= s.exercises[exIdx].sets.length) return false;
+    final active = activeSetLocation;
+    if (active != null && (active.exercise != exIdx || active.set != setIdx)) return false;
+    final st = s.exercises[exIdx].sets[setIdx];
+    if (st.done) return false;
+    _restTimer?.cancel();
+    RestAlarm.instance.cancel();
+    s.clearRest();
+    st.startedAt = DateTime.now();
+    st.completedAt = null;
+    st.cancelledAt = null;
+    unawaited(HealthStore.instance.savePhase(WorkoutPhase(
+      id: 'set-${st.id}',
+      sessionId: s.id,
+      kind: WorkoutPhaseKind.set,
+      startedAt: st.startedAt!,
+      exerciseId: s.exercises[exIdx].id,
+      setId: st.id,
+    )));
+    _persist();
+    notifyListeners();
+    return true;
+  }
+
+  void finishSessionSet(int exIdx, int setIdx) {
+    final s = session;
+    if (s == null || exIdx < 0 || exIdx >= s.exercises.length) return;
+    if (setIdx < 0 || setIdx >= s.exercises[exIdx].sets.length) return;
+    final st = s.exercises[exIdx].sets[setIdx];
+    if (st.status != SessionSetStatus.active) return;
+    st.done = true;
+    st.completedAt = DateTime.now();
+    st.cancelledAt = null;
+    unawaited(HealthStore.instance.savePhase(WorkoutPhase(
+      id: 'set-${st.id}',
+      sessionId: s.id,
+      kind: WorkoutPhaseKind.set,
+      startedAt: st.startedAt!,
+      endedAt: st.completedAt,
+      exerciseId: s.exercises[exIdx].id,
+      setId: st.id,
+    )));
+    _persist();
+    notifyListeners();
+    final chain = chainAt(exIdx);
+    if (chain.length > 1) {
+      _advanceChain(chain, exIdx);
+      return;
+    }
+    startRest();
+    if (autoAdvance) _advanceWhenDone(exIdx);
+  }
+
+  void cancelSessionSet(int exIdx, int setIdx) {
+    final s = session;
+    if (s == null || exIdx < 0 || exIdx >= s.exercises.length) return;
+    if (setIdx < 0 || setIdx >= s.exercises[exIdx].sets.length) return;
+    final st = s.exercises[exIdx].sets[setIdx];
+    if (st.status != SessionSetStatus.active) return;
+    st.done = false;
+    st.startedAt = null;
+    st.completedAt = null;
+    st.cancelledAt = DateTime.now();
+    _persist();
+    notifyListeners();
   }
 
   List<int> chainAt(int exIdx) {
@@ -338,9 +442,11 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     if (sessionPaused || session?.manual == true) return;
     _restTimer?.cancel();
     RestAlarm.instance.stopSound();
-    final seconds = restFor(session!.exercises.isEmpty
-        ? ''
-        : session!.exercises[session!.currentIndex.clamp(0, session!.exercises.length - 1)].id);
+    final seconds = restFor(
+      session!.exercises.isEmpty
+          ? ''
+          : session!.exercises[session!.currentIndex.clamp(0, session!.exercises.length - 1)].id,
+    );
     if (seconds <= 0) {
       session!.clearRest();
       notifyListeners();
@@ -545,6 +651,15 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     notifyListeners();
   }
 
+  void goToSessionExercise(int index) {
+    final s = session;
+    if (s == null || index < 0 || index >= s.exercises.length) return;
+    _advanceTimer?.cancel();
+    s.currentIndex = index;
+    _persist();
+    notifyListeners();
+  }
+
   void prevExercise() {
     final s = session!;
     s.currentIndex = math.max(s.currentIndex - 1, 0);
@@ -572,19 +687,31 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     s.summaryDuration = s.manual ? _elapsedBefore : sessionElapsed;
     s.complete = true;
     s.clearRest();
+    unawaited(HealthStore.instance.finishTelemetry(
+      s.id,
+      DateTime.now(),
+      weightKg: profile.weightKg,
+    ));
+    unawaited(WatchBridge.stop(s.id));
 
     if (done.isNotEmpty) {
       final logged = <LoggedExercise>[];
       for (final e in s.exercises) {
         final doneSets = e.sets
             .where((st) => st.done)
-            .map((st) => LoggedSet(st.reps, st.weight, kind: st.kind, rpe: st.rpe))
+            .map((st) => LoggedSet(st.reps, st.weight,
+                kind: st.kind,
+                rpe: st.rpe,
+                id: st.id,
+                startedAt: st.startedAt,
+                completedAt: st.completedAt))
             .toList();
         if (doneSets.isNotEmpty) {
           logged.add(LoggedExercise(e.id, e.name, e.primary, doneSets));
         }
       }
-      final entry = LoggedSession(s.loggedAt ?? DateTime.now(), s.summaryDuration ?? 0, logged);
+      final entry = LoggedSession(s.loggedAt ?? DateTime.now(), s.summaryDuration ?? 0, logged,
+          id: s.id, telemetryId: s.id);
       sessions.add(entry);
       sessions.sort((a, b) => a.date.compareTo(b.date));
       _computeSummaryHighlights(entry);
@@ -650,8 +777,17 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
       ..loggedAt = ls.date
       ..manual = _dayKey(ls.date) != _dayKey(DateTime.now())
       ..exercises = ls.exercises
-          .map((e) => SessionExercise(e.id, e.name, e.primary,
-              e.sets.map((x) => SessionSet(x.reps, x.weight, true)).toList()))
+          .map(
+            (e) => SessionExercise(
+              e.id,
+              e.name,
+              e.primary,
+              e.sets
+                  .map((x) => SessionSet(x.reps, x.weight, true,
+                      id: x.id, startedAt: x.startedAt, completedAt: x.completedAt))
+                  .toList(),
+            ),
+          )
           .toList();
     _restTimer?.cancel();
     _elapsedBefore = ls.durationSec;
@@ -687,7 +823,11 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     notifyListeners();
   }
 
-  void discardSession() => saveAndExit();
+  void discardSession() {
+    final id = session?.id;
+    if (id != null) unawaited(WatchBridge.stop(id));
+    saveAndExit();
+  }
 
   bool get isSessionActive => route == 'session' && session != null && !session!.complete;
   bool get isSessionComplete => route == 'session' && session != null && session!.complete;

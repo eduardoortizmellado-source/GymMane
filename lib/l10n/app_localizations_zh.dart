@@ -297,6 +297,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get startSet => '开始组次';
+
+  @override
+  String get finishSet => '结束组次';
+
+  @override
+  String get cancelSet => '取消组次';
+
+  @override
+  String get setInProgress => '组次进行中';
+
+  @override
   String get pauseWorkout => '暂停训练';
 
   @override
@@ -653,6 +665,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noGearOnly => '仅自重';
+
+  @override
+  String get recent => '最近';
 
   @override
   String placeActive(String name) {
@@ -2401,7 +2416,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get orStartFrom => '或者从这里开始';
 
   @override
-  String get pickExercisesOption => '挑选动作';
+  String get pickExercisesOption => '临时创建训练';
 
   @override
   String get chooseFocusOption => '选择训练重点';
