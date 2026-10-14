@@ -888,5 +888,10 @@
   "energyActiveSets": "Active sets",
   "energyYourWeight": "Your weight",
   "energyEstimateHint": "General estimate for your current weight. It will become personal after several sessions with the watch. Low confidence.",
-  "demoBadge": "DEMO"
+  "demoBadge": "DEMO",
+  "averageHeartRate": "AVG HEART RATE",
+  "maxHeartRate": "MAX HEART RATE",
+  "sensorCoverage": "WATCH COVERAGE",
+  "workRest": "WORK / REST",
+  "exerciseDetails": "EXERCISE DETAILS"
 }

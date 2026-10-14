@@ -2571,4 +2571,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get demoBadge => 'DEMO';
+
+  @override
+  String get averageHeartRate => 'FC MEDIA';
+
+  @override
+  String get maxHeartRate => 'FC MÁXIMA';
+
+  @override
+  String get sensorCoverage => 'COBERTURA DEL RELOJ';
+
+  @override
+  String get workRest => 'TRABAJO / DESCANSO';
+
+  @override
+  String get exerciseDetails => 'DETALLE DEL EJERCICIO';
 }

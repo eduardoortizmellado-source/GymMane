@@ -6,12 +6,15 @@ SetKind setKindFrom(Object? raw) {
 }
 
 class LoggedSet {
-  LoggedSet(this.reps, this.weight,
-      {this.kind = SetKind.normal,
-      this.rpe,
-      this.id,
-      this.startedAt,
-      this.completedAt});
+  LoggedSet(
+    this.reps,
+    this.weight, {
+    this.kind = SetKind.normal,
+    this.rpe,
+    this.id,
+    this.startedAt,
+    this.completedAt,
+  });
   final int reps;
   final double weight;
   final SetKind kind;
@@ -25,24 +28,34 @@ class LoggedSet {
 
   double get oneRm => weight * (1 + reps / 30);
 
+  LoggedSet copyWith({int? reps, double? weight}) => LoggedSet(
+    reps ?? this.reps,
+    weight ?? this.weight,
+    kind: kind,
+    rpe: rpe,
+    id: id,
+    startedAt: startedAt,
+    completedAt: completedAt,
+  );
+
   Map<String, dynamic> toJson() => {
-        if (id != null) 'id': id,
-        'r': reps,
-        'w': weight,
-        if (kind != SetKind.normal) 'k': kind.index,
-        if (rpe != null) 'e': rpe,
-        if (startedAt != null) 'sa': startedAt!.toIso8601String(),
-        if (completedAt != null) 'ca': completedAt!.toIso8601String(),
-      };
+    if (id != null) 'id': id,
+    'r': reps,
+    'w': weight,
+    if (kind != SetKind.normal) 'k': kind.index,
+    if (rpe != null) 'e': rpe,
+    if (startedAt != null) 'sa': startedAt!.toIso8601String(),
+    if (completedAt != null) 'ca': completedAt!.toIso8601String(),
+  };
   factory LoggedSet.fromJson(Map<String, dynamic> j) => LoggedSet(
-        (j['r'] as num).toInt(),
-        (j['w'] as num).toDouble(),
-        kind: setKindFrom(j['k']),
-        rpe: (j['e'] as num?)?.toDouble(),
-        id: j['id'] as String?,
-        startedAt: DateTime.tryParse((j['sa'] as String?) ?? ''),
-        completedAt: DateTime.tryParse((j['ca'] as String?) ?? ''),
-      );
+    (j['r'] as num).toInt(),
+    (j['w'] as num).toDouble(),
+    kind: setKindFrom(j['k']),
+    rpe: (j['e'] as num?)?.toDouble(),
+    id: j['id'] as String?,
+    startedAt: DateTime.tryParse((j['sa'] as String?) ?? ''),
+    completedAt: DateTime.tryParse((j['ca'] as String?) ?? ''),
+  );
 }
 
 class LoggedExercise {
@@ -66,17 +79,17 @@ class LoggedExercise {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'n': name,
-        'p': primary,
-        's': sets.map((s) => s.toJson()).toList(),
-      };
+    'id': id,
+    'n': name,
+    'p': primary,
+    's': sets.map((s) => s.toJson()).toList(),
+  };
   factory LoggedExercise.fromJson(Map<String, dynamic> j) => LoggedExercise(
-        j['id'] as String,
-        j['n'] as String,
-        j['p'] as String,
-        (j['s'] as List).map((e) => LoggedSet.fromJson(e as Map<String, dynamic>)).toList(),
-      );
+    j['id'] as String,
+    j['n'] as String,
+    j['p'] as String,
+    (j['s'] as List).map((e) => LoggedSet.fromJson(e as Map<String, dynamic>)).toList(),
+  );
 }
 
 class LoggedSession {
@@ -91,19 +104,19 @@ class LoggedSession {
   int get setCount => exercises.fold(0, (s, e) => s + e.workingSets.length);
 
   Map<String, dynamic> toJson() => {
-        if (id != null) 'id': id,
-        if (telemetryId != null) 'tid': telemetryId,
-        'd': date.toIso8601String(),
-        'dur': durationSec,
-        'ex': exercises.map((e) => e.toJson()).toList(),
-      };
+    if (id != null) 'id': id,
+    if (telemetryId != null) 'tid': telemetryId,
+    'd': date.toIso8601String(),
+    'dur': durationSec,
+    'ex': exercises.map((e) => e.toJson()).toList(),
+  };
   factory LoggedSession.fromJson(Map<String, dynamic> j) => LoggedSession(
-        DateTime.parse(j['d'] as String),
-        (j['dur'] as num?)?.toInt() ?? 0,
-        (j['ex'] as List).map((e) => LoggedExercise.fromJson(e as Map<String, dynamic>)).toList(),
-        id: j['id'] as String?,
-        telemetryId: j['tid'] as String?,
-      );
+    DateTime.parse(j['d'] as String),
+    (j['dur'] as num?)?.toInt() ?? 0,
+    (j['ex'] as List).map((e) => LoggedExercise.fromJson(e as Map<String, dynamic>)).toList(),
+    id: j['id'] as String?,
+    telemetryId: j['tid'] as String?,
+  );
 }
 
 class BodyweightEntry {
@@ -117,10 +130,15 @@ class BodyweightEntry {
 }
 
 class Routine {
-  Routine(this.id, this.name, this.exerciseIds,
-      {Map<String, int>? sets, Set<String>? chained, this.group = ''})
-      : sets = sets ?? {},
-        chained = chained ?? {};
+  Routine(
+    this.id,
+    this.name,
+    this.exerciseIds, {
+    Map<String, int>? sets,
+    Set<String>? chained,
+    this.group = '',
+  }) : sets = sets ?? {},
+       chained = chained ?? {};
   final String id;
   String name;
   String group;
@@ -129,20 +147,19 @@ class Routine {
   final Set<String> chained;
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'n': name,
-        'ex': exerciseIds,
-        if (sets.isNotEmpty) 's': sets,
-        if (chained.isNotEmpty) 'c': chained.toList(),
-        if (group.isNotEmpty) 'g': group,
-      };
+    'id': id,
+    'n': name,
+    'ex': exerciseIds,
+    if (sets.isNotEmpty) 's': sets,
+    if (chained.isNotEmpty) 'c': chained.toList(),
+    if (group.isNotEmpty) 'g': group,
+  };
   factory Routine.fromJson(Map<String, dynamic> j) => Routine(
-        j['id'] as String,
-        j['n'] as String,
-        ((j['ex'] as List?) ?? []).cast<String>(),
-        sets: ((j['s'] as Map?) ?? const {})
-            .map((k, v) => MapEntry(k as String, (v as num).toInt())),
-        chained: ((j['c'] as List?) ?? const []).cast<String>().toSet(),
-        group: (j['g'] as String?) ?? '',
-      );
+    j['id'] as String,
+    j['n'] as String,
+    ((j['ex'] as List?) ?? []).cast<String>(),
+    sets: ((j['s'] as Map?) ?? const {}).map((k, v) => MapEntry(k as String, (v as num).toInt())),
+    chained: ((j['c'] as List?) ?? const []).cast<String>().toSet(),
+    group: (j['g'] as String?) ?? '',
+  );
 }

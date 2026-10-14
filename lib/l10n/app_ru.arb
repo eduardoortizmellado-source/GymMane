@@ -808,5 +808,10 @@
   "energyActiveSets": "Активные подходы",
   "energyYourWeight": "Ваш вес",
   "energyEstimateHint": "Общая оценка для вашего текущего веса. После нескольких тренировок с часами она станет персональной. Низкая точность.",
-  "demoBadge": "ДЕМО"
+  "demoBadge": "ДЕМО",
+  "averageHeartRate": "СРЕДНИЙ ПУЛЬС",
+  "maxHeartRate": "МАКС. ПУЛЬС",
+  "sensorCoverage": "ПОКРЫТИЕ ЧАСОВ",
+  "workRest": "РАБОТА / ОТДЫХ",
+  "exerciseDetails": "ДЕТАЛИ УПРАЖНЕНИЯ"
 }

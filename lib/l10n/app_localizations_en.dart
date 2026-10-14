@@ -2573,4 +2573,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get demoBadge => 'DEMO';
+
+  @override
+  String get averageHeartRate => 'AVG HEART RATE';
+
+  @override
+  String get maxHeartRate => 'MAX HEART RATE';
+
+  @override
+  String get sensorCoverage => 'WATCH COVERAGE';
+
+  @override
+  String get workRest => 'WORK / REST';
+
+  @override
+  String get exerciseDetails => 'EXERCISE DETAILS';
 }

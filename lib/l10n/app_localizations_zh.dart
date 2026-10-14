@@ -2460,4 +2460,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get demoBadge => '演示';
+
+  @override
+  String get averageHeartRate => '平均心率';
+
+  @override
+  String get maxHeartRate => '最高心率';
+
+  @override
+  String get sensorCoverage => '手表覆盖率';
+
+  @override
+  String get workRest => '训练 / 休息';
+
+  @override
+  String get exerciseDetails => '动作详情';
 }

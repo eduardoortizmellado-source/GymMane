@@ -4590,6 +4590,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'DEMO'**
   String get demoBadge;
+
+  /// No description provided for @averageHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'AVG HEART RATE'**
+  String get averageHeartRate;
+
+  /// No description provided for @maxHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'MAX HEART RATE'**
+  String get maxHeartRate;
+
+  /// No description provided for @sensorCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'WATCH COVERAGE'**
+  String get sensorCoverage;
+
+  /// No description provided for @workRest.
+  ///
+  /// In en, this message translates to:
+  /// **'WORK / REST'**
+  String get workRest;
+
+  /// No description provided for @exerciseDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'EXERCISE DETAILS'**
+  String get exerciseDetails;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -2575,4 +2575,19 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get demoBadge => 'DEMO';
+
+  @override
+  String get averageHeartRate => 'FC MEDIA';
+
+  @override
+  String get maxHeartRate => 'FC MASSIMA';
+
+  @override
+  String get sensorCoverage => 'COPERTURA OROLOGIO';
+
+  @override
+  String get workRest => 'LAVORO / RIPOSO';
+
+  @override
+  String get exerciseDetails => 'DETTAGLI ESERCIZIO';
 }

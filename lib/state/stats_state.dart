@@ -3,9 +3,7 @@ part of 'fit_state.dart';
 mixin StatsState on FitCore, ToolsState, LibraryState, TimelineState {
   List<Exercise> recommendedExercises(int n) {
     final muscles = suggestedFocus.muscles;
-    final picks = [
-      for (final m in muscles) ...kExercises.where((e) => e.primary == m).take(1),
-    ];
+    final picks = [for (final m in muscles) ...kExercises.where((e) => e.primary == m).take(1)];
 
     for (final e in kExercises) {
       if (picks.length >= n) break;
@@ -65,9 +63,8 @@ mixin StatsState on FitCore, ToolsState, LibraryState, TimelineState {
     });
   }
 
-  double _volumeBetween(DateTime start, DateTime end) => sessions
-      .where((s) => s.date.isAfter(start) && !s.date.isAfter(end))
-      .fold(0.0, (a, s) => a + s.volume);
+  double _volumeBetween(DateTime start, DateTime end) =>
+      sessions.where((s) => s.date.isAfter(start) && !s.date.isAfter(end)).fold(0.0, (a, s) => a + s.volume);
 
   bool get hasData => sessions.isNotEmpty;
   int get totalSessions => sessions.length;
@@ -93,9 +90,8 @@ mixin StatsState on FitCore, ToolsState, LibraryState, TimelineState {
 
   Duration get totalTime => Duration(seconds: sessions.fold(0, (n, s) => n + s.durationSec));
 
-  Duration get averageSession => sessions.isEmpty
-      ? Duration.zero
-      : Duration(seconds: totalTime.inSeconds ~/ sessions.length);
+  Duration get averageSession =>
+      sessions.isEmpty ? Duration.zero : Duration(seconds: totalTime.inSeconds ~/ sessions.length);
 
   int get statsYear => DateTime.now().year;
 
@@ -107,9 +103,8 @@ mixin StatsState on FitCore, ToolsState, LibraryState, TimelineState {
     return out;
   }
 
-  double get volumeThisYearKg => sessions
-      .where((s) => s.date.year == statsYear)
-      .fold(0.0, (a, s) => a + s.volume);
+  double get volumeThisYearKg =>
+      sessions.where((s) => s.date.year == statsYear).fold(0.0, (a, s) => a + s.volume);
 
   int get sessionsThisYear => sessionsByMonth.fold(0, (a, b) => a + b);
 
@@ -149,7 +144,9 @@ mixin StatsState on FitCore, ToolsState, LibraryState, TimelineState {
     final now = DateTime.now();
     final cur = _volumeBetween(now.subtract(const Duration(days: 30)), now);
     final prev = _volumeBetween(
-        now.subtract(const Duration(days: 60)), now.subtract(const Duration(days: 30)));
+      now.subtract(const Duration(days: 60)),
+      now.subtract(const Duration(days: 30)),
+    );
     if (prev <= 0) return null;
     return (((cur - prev) / prev) * 100).round();
   }
@@ -178,13 +175,11 @@ mixin StatsState on FitCore, ToolsState, LibraryState, TimelineState {
     return daily.map((v) => heatLevel(v / maxV)).toList();
   }
 
-  DateTime heatmapDate(int i) =>
-      shiftDays(_dayKey(DateTime.now()), i - (kHeatmapDays - 1));
+  DateTime heatmapDate(int i) => shiftDays(_dayKey(DateTime.now()), i - (kHeatmapDays - 1));
 
   List<LoggedSession> sessionsOn(DateTime day) {
     final k = _dayKey(day);
-    return sessions.where((s) => _dayKey(s.date) == k).toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+    return sessions.where((s) => _dayKey(s.date) == k).toList()..sort((a, b) => b.date.compareTo(a.date));
   }
 
   void deleteSession(LoggedSession s) {
@@ -203,7 +198,7 @@ mixin StatsState on FitCore, ToolsState, LibraryState, TimelineState {
 
   void setLoggedReps(LoggedExercise e, int i, int reps) {
     if (i < 0 || i >= e.sets.length) return;
-    e.sets[i] = LoggedSet(reps.clamp(0, 999), e.sets[i].weight);
+    e.sets[i] = e.sets[i].copyWith(reps: reps.clamp(0, 999));
     persistNow();
     _refreshWidgets();
     notifyListeners();
@@ -211,7 +206,7 @@ mixin StatsState on FitCore, ToolsState, LibraryState, TimelineState {
 
   void setLoggedWeight(LoggedExercise e, int i, double kg) {
     if (i < 0 || i >= e.sets.length) return;
-    e.sets[i] = LoggedSet(e.sets[i].reps, _round3(kg.clamp(0, 1000)));
+    e.sets[i] = e.sets[i].copyWith(weight: _round3(kg.clamp(0, 1000)));
     persistNow();
     _refreshWidgets();
     notifyListeners();
@@ -220,8 +215,7 @@ mixin StatsState on FitCore, ToolsState, LibraryState, TimelineState {
   void setLoggedWeightShown(LoggedExercise e, int i, double shown) =>
       setLoggedWeight(e, i, fromDisplayWeight(shown));
 
-  void bumpLoggedReps(LoggedExercise e, int i, int d) =>
-      setLoggedReps(e, i, e.sets[i].reps + d);
+  void bumpLoggedReps(LoggedExercise e, int i, int d) => setLoggedReps(e, i, e.sets[i].reps + d);
 
   void bumpLoggedWeight(LoggedExercise e, int i, int dir) {
     final next = _roundTo(toDisplayWeight(e.sets[i].weight), weightStep) + dir * weightStep;
@@ -259,11 +253,9 @@ mixin StatsState on FitCore, ToolsState, LibraryState, TimelineState {
     notifyListeners();
   }
 
-  List<BodyweightEntry> get bodyweightHistory =>
-      [...bodyweight]..sort((a, b) => b.date.compareTo(a.date));
+  List<BodyweightEntry> get bodyweightHistory => [...bodyweight]..sort((a, b) => b.date.compareTo(a.date));
 
-  ({int exercises, int sets, double volume, int durationSec, List<String> names})? daySummary(
-      DateTime day) {
+  ({int exercises, int sets, double volume, int durationSec, List<String> names})? daySummary(DateTime day) {
     final k = _dayKey(day);
     final ofDay = sessions.where((s) => _dayKey(s.date) == k).toList();
     if (ofDay.isEmpty) return null;
@@ -413,11 +405,12 @@ mixin StatsState on FitCore, ToolsState, LibraryState, TimelineState {
     }
     final total = byGroup.values.fold(0.0, (a, b) => a + b);
     if (total <= 0) return const [];
-    final list = byGroup.entries
-        .map((e) => (name: t.muscleGroupName(e.key), pct: ((e.value / total) * 100).round()))
-        .where((e) => e.pct > 0)
-        .toList()
-      ..sort((a, b) => b.pct.compareTo(a.pct));
+    final list =
+        byGroup.entries
+            .map((e) => (name: t.muscleGroupName(e.key), pct: ((e.value / total) * 100).round()))
+            .where((e) => e.pct > 0)
+            .toList()
+          ..sort((a, b) => b.pct.compareTo(a.pct));
     return list;
   }
 
@@ -462,13 +455,7 @@ mixin StatsState on FitCore, ToolsState, LibraryState, TimelineState {
         volume += s.volume;
       }
       if (count > 0 || out.isEmpty) {
-        out.add((
-          from: from,
-          to: to,
-          heat: muscleHeatBetween(from, to),
-          sessions: count,
-          volume: volume,
-        ));
+        out.add((from: from, to: to, heat: muscleHeatBetween(from, to), sessions: count, volume: volume));
       }
       to = DateTime(from.year, from.month, from.day - 1);
     }
@@ -495,17 +482,12 @@ mixin StatsState on FitCore, ToolsState, LibraryState, TimelineState {
 
   Map<String, double> muscleHeatBetween(DateTime from, DateTime to) {
     final target = muscleTargetFor(daysBetween(from, to) + 1);
-    return {
-      for (final e in muscleSetsBetween(from, to).entries)
-        e.key: (e.value / target).clamp(0.0, 1.0),
-    };
+    return {for (final e in muscleSetsBetween(from, to).entries) e.key: (e.value / target).clamp(0.0, 1.0)};
   }
 
   Map<String, double> muscleHeatOver(int days) {
     final target = muscleTargetFor(days);
-    return {
-      for (final e in muscleSetsOver(days).entries) e.key: (e.value / target).clamp(0.0, 1.0),
-    };
+    return {for (final e in muscleSetsOver(days).entries) e.key: (e.value / target).clamp(0.0, 1.0)};
   }
 
   List<String> neglectedMuscles(int days) {
@@ -561,11 +543,12 @@ mixin StatsState on FitCore, ToolsState, LibraryState, TimelineState {
         names[e.id] = e.name;
       }
     }
-    final list = count.entries
-        .where((e) => e.value >= 2)
-        .map((e) => (id: e.key, name: names[e.key]!, sessions: e.value))
-        .toList()
-      ..sort((a, b) => b.sessions.compareTo(a.sessions));
+    final list =
+        count.entries
+            .where((e) => e.value >= 2)
+            .map((e) => (id: e.key, name: names[e.key]!, sessions: e.value))
+            .toList()
+          ..sort((a, b) => b.sessions.compareTo(a.sessions));
     return list;
   }
 
@@ -670,11 +653,7 @@ mixin StatsState on FitCore, ToolsState, LibraryState, TimelineState {
     final habit = familyOnWeekday(today);
     if (habit != null && order.contains(habit) && !(lastWasRecent && habit == last)) {
       final picked = table[habit]!;
-      return (
-        title: picked.title,
-        subtitle: t.habitFocus(t.weekday(today)),
-        muscles: picked.muscles,
-      );
+      return (title: picked.title, subtitle: t.habitFocus(t.weekday(today)), muscles: picked.muscles);
     }
     final idx = order.indexOf(last);
 

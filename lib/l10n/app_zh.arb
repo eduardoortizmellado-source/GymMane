@@ -779,5 +779,10 @@
   "energyActiveSets": "有效训练组",
   "energyYourWeight": "你的体重",
   "energyEstimateHint": "根据当前体重得出的一般估算。使用手表完成多次训练后将转为个性化估算。置信度较低。",
-  "demoBadge": "演示"
+  "demoBadge": "演示",
+  "averageHeartRate": "平均心率",
+  "maxHeartRate": "最高心率",
+  "sensorCoverage": "手表覆盖率",
+  "workRest": "训练 / 休息",
+  "exerciseDetails": "动作详情"
 }

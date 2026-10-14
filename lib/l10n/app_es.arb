@@ -827,5 +827,10 @@
   "energyActiveSets": "Series activas",
   "energyYourWeight": "Tu peso",
   "energyEstimateHint": "Estimación general para tu peso actual. Se volverá personal después de varias sesiones con el reloj. Confianza baja.",
-  "demoBadge": "DEMO"
+  "demoBadge": "DEMO",
+  "averageHeartRate": "FC MEDIA",
+  "maxHeartRate": "FC MÁXIMA",
+  "sensorCoverage": "COBERTURA DEL RELOJ",
+  "workRest": "TRABAJO / DESCANSO",
+  "exerciseDetails": "DETALLE DEL EJERCICIO"
 }

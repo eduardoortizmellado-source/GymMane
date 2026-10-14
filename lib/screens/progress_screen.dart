@@ -17,6 +17,7 @@ import '../widgets/dialogs.dart';
 import '../widgets/ui_kit.dart';
 import 'share_sheet.dart';
 import 'start_sheet.dart';
+import 'workout_history_screen.dart';
 
 class ProgressScreen extends StatelessWidget {
   const ProgressScreen({super.key});
@@ -796,11 +797,13 @@ class ProgressScreen extends StatelessWidget {
   }
 
   void _showDate(BuildContext context, DateTime date) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _DaySheet(date: date),
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => WorkoutHistoryScreen(
+          date: date,
+          onEdit: showEditLoggedSheet,
+        ),
+      ),
     );
   }
 
@@ -1026,6 +1029,8 @@ class _StrengthCard extends StatelessWidget {
   }
 }
 
+// Kept temporarily while the full-screen history view is validated on-device.
+// ignore: unused_element
 class _DaySheet extends StatelessWidget {
   const _DaySheet({required this.date});
 

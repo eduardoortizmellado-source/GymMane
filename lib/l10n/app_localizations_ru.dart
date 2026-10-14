@@ -2652,4 +2652,19 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get demoBadge => 'ДЕМО';
+
+  @override
+  String get averageHeartRate => 'СРЕДНИЙ ПУЛЬС';
+
+  @override
+  String get maxHeartRate => 'МАКС. ПУЛЬС';
+
+  @override
+  String get sensorCoverage => 'ПОКРЫТИЕ ЧАСОВ';
+
+  @override
+  String get workRest => 'РАБОТА / ОТДЫХ';
+
+  @override
+  String get exerciseDetails => 'ДЕТАЛИ УПРАЖНЕНИЯ';
 }

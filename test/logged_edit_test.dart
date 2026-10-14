@@ -21,14 +21,9 @@ void main() {
   });
 
   LoggedSession log({int daysAgo = 0, List<LoggedSet>? sets}) {
-    final s = LoggedSession(
-      DateTime.now().subtract(Duration(days: daysAgo)),
-      1800,
-      [
-        LoggedExercise(bench.id, bench.name, bench.primary,
-            sets ?? [LoggedSet(10, 60), LoggedSet(8, 70)])
-      ],
-    );
+    final s = LoggedSession(DateTime.now().subtract(Duration(days: daysAgo)), 1800, [
+      LoggedExercise(bench.id, bench.name, bench.primary, sets ?? [LoggedSet(10, 60), LoggedSet(8, 70)]),
+    ]);
     fit.sessions.add(s);
     return s;
   }
@@ -43,6 +38,34 @@ void main() {
       expect(e.sets[0].reps, 12);
       expect(e.sets[0].weight, 65);
       expect(s.volume, 12 * 65 + 8 * 70);
+    });
+
+    test('correcting a set preserves its sensor timeline metadata', () {
+      final started = DateTime(2026, 10, 13, 18, 30);
+      final completed = started.add(const Duration(seconds: 42));
+      final s = log(
+        sets: [
+          LoggedSet(
+            10,
+            60,
+            id: 'set-1',
+            kind: SetKind.failure,
+            rpe: 9,
+            startedAt: started,
+            completedAt: completed,
+          ),
+        ],
+      );
+      final e = s.exercises.single;
+
+      fit.setLoggedReps(e, 0, 8);
+      fit.setLoggedWeight(e, 0, 62.5);
+
+      expect(e.sets.single.id, 'set-1');
+      expect(e.sets.single.kind, SetKind.failure);
+      expect(e.sets.single.rpe, 9);
+      expect(e.sets.single.startedAt, started);
+      expect(e.sets.single.completedAt, completed);
     });
 
     test('a set can be added and removed, and the last one takes the exercise', () {

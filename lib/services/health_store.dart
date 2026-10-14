@@ -7,7 +7,9 @@ import 'package:sqflite/sqflite.dart';
 
 import '../models/body_composition.dart';
 import '../models/calorie_estimate.dart';
+import '../models/history_metrics.dart';
 import '../models/telemetry.dart';
+import '../models/workout.dart';
 import 'calorie_engine.dart';
 
 class HealthStore {
@@ -164,6 +166,110 @@ class HealthStore {
       version: row['algorithm_version'] as String? ?? CalorieEngine.version,
       sources: const [],
       watchTotalKcal: (row['watch_calories'] as num?)?.toDouble(),
+    );
+  }
+
+  Future<SessionHistoryMetrics> historyMetricsForSession(LoggedSession session) async {
+    final sessionId = session.telemetryId;
+    final database = _db;
+    Map<String, Object?>? telemetry;
+    var samples = <Map<String, Object?>>[];
+    var phases = <Map<String, Object?>>[];
+    if (database != null && sessionId != null && sessionId.isNotEmpty) {
+      final rows = await database.query(
+        'telemetry_session',
+        where: 'id = ?',
+        whereArgs: [sessionId],
+        limit: 1,
+      );
+      if (rows.isNotEmpty) telemetry = rows.single;
+      samples = await database.query(
+        'sensor_sample',
+        where: 'session_id = ?',
+        whereArgs: [sessionId],
+        orderBy: 'at ASC',
+      );
+      phases = await database.query(
+        'workout_phase',
+        where: "session_id = ? AND kind = 'set' AND ended_at IS NOT NULL",
+        whereArgs: [sessionId],
+        orderBy: 'started_at ASC',
+      );
+    }
+
+    final intervals = <String, List<(int, int)>>{};
+    for (final phase in phases) {
+      final exerciseId = phase['exercise_id'] as String?;
+      final start = (phase['started_at'] as num?)?.toInt();
+      final end = (phase['ended_at'] as num?)?.toInt();
+      if (exerciseId == null || start == null || end == null || end < start) continue;
+      intervals.putIfAbsent(exerciseId, () => []).add((start, end));
+    }
+    for (final exercise in session.exercises) {
+      if ((intervals[exercise.id] ?? const []).isNotEmpty) continue;
+      for (final set in exercise.sets) {
+        final start = set.startedAt?.millisecondsSinceEpoch;
+        final end = set.completedAt?.millisecondsSinceEpoch;
+        if (start == null || end == null || end < start) continue;
+        intervals.putIfAbsent(exercise.id, () => []).add((start, end));
+      }
+    }
+
+    final totalActiveMs = intervals.values
+        .expand((items) => items)
+        .fold<int>(0, (sum, item) => sum + item.$2 - item.$1);
+    final estimateMid = (telemetry?['estimate_mid'] as num?)?.toDouble();
+    final allHeartRates = samples
+        .map((sample) => (sample['heart_rate'] as num?)?.toDouble())
+        .whereType<double>()
+        .toList();
+    final exerciseMetrics = <String, ExerciseHistoryMetrics>{};
+    for (final exercise in session.exercises) {
+      final spans = [...(intervals[exercise.id] ?? const <(int, int)>[])]
+        ..sort((a, b) => a.$1.compareTo(b.$1));
+      final activeMs = spans.fold<int>(0, (sum, item) => sum + item.$2 - item.$1);
+      var restMs = 0;
+      for (var i = 1; i < spans.length; i++) {
+        restMs += (spans[i].$1 - spans[i - 1].$2).clamp(0, 15 * 60 * 1000);
+      }
+      final hrs = <double>[];
+      for (final sample in samples) {
+        final at = (sample['at'] as num?)?.toInt();
+        final hr = (sample['heart_rate'] as num?)?.toDouble();
+        if (at == null || hr == null) continue;
+        if (spans.any((span) => at >= span.$1 && at <= span.$2)) hrs.add(hr);
+      }
+      final workingSets = exercise.workingSets.length;
+      final totalSets = session.setCount;
+      final share = totalActiveMs > 0
+          ? activeMs / totalActiveMs
+          : totalSets > 0
+          ? workingSets / totalSets
+          : 0.0;
+      exerciseMetrics[exercise.id] = ExerciseHistoryMetrics(
+        activeSeconds: (activeMs / 1000).round(),
+        restSeconds: (restMs / 1000).round(),
+        averageHeartRate: hrs.isEmpty ? null : hrs.reduce((a, b) => a + b) / hrs.length,
+        maxHeartRate: hrs.isEmpty ? null : hrs.reduce((a, b) => a > b ? a : b),
+        estimatedKcal: estimateMid == null ? null : estimateMid * share,
+        sensorCoverage: activeMs <= 0 ? 0 : (hrs.length / (activeMs / 1000)).clamp(0, 1),
+      );
+    }
+
+    final activeSeconds = (totalActiveMs / 1000).round();
+    return SessionHistoryMetrics(
+      activeSeconds: activeSeconds,
+      restSeconds: (session.durationSec - activeSeconds).clamp(0, session.durationSec),
+      averageHeartRate: allHeartRates.isEmpty
+          ? null
+          : allHeartRates.reduce((a, b) => a + b) / allHeartRates.length,
+      maxHeartRate: allHeartRates.isEmpty ? null : allHeartRates.reduce((a, b) => a > b ? a : b),
+      estimatedKcal: estimateMid,
+      estimateLow: (telemetry?['estimate_low'] as num?)?.toDouble(),
+      estimateHigh: (telemetry?['estimate_high'] as num?)?.toDouble(),
+      estimateConfidence: (telemetry?['confidence'] as num?)?.toDouble(),
+      sensorCoverage: session.durationSec <= 0 ? 0 : (allHeartRates.length / session.durationSec).clamp(0, 1),
+      exercises: exerciseMetrics,
     );
   }
 
