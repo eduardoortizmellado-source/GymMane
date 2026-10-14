@@ -9,6 +9,7 @@ import '../state/fit_state.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/dialogs.dart';
+import '../widgets/exercise_media.dart';
 import '../widgets/ui_kit.dart';
 import 'start_sheet.dart';
 
@@ -336,6 +337,7 @@ class WorkoutHistoryScreen extends StatelessWidget {
     final rest = metrics?.restSeconds ?? 0;
     final total = work + rest;
     final workRatio = total <= 0 ? 0.0 : work / total;
+    final catalogExercise = fit.exerciseById(exercise.id);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => _showExerciseDetails(context, session, exercise, metrics),
@@ -347,13 +349,19 @@ class WorkoutHistoryScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(color: gc.bgRaised2, borderRadius: BorderRadius.circular(13)),
-                  child: Icon(PhosphorIconsRegular.barbell, size: 18, color: gc.brass),
-                ),
+                if (catalogExercise != null)
+                  SizedBox(
+                    width: 52,
+                    child: ExerciseMedia(ex: catalogExercise, height: 52, radius: 14, bordered: false),
+                  )
+                else
+                  Container(
+                    width: 52,
+                    height: 52,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: gc.bgRaised2, borderRadius: BorderRadius.circular(14)),
+                    child: Icon(PhosphorIconsRegular.barbell, size: 18, color: gc.brass),
+                  ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
