@@ -2633,4 +2633,23 @@ class AppLocalizationsRu extends AppLocalizations {
   String calorieRangeConfidence(int low, int high, int confidence) {
     return '$low–$high ккал · точность $confidence%';
   }
+
+  @override
+  String get energyEstimateTitle => 'ОЦЕНКА ЭНЕРГОЗАТРАТ';
+
+  @override
+  String get energyGymPace => 'Обычный темп в зале · подходы и отдых';
+
+  @override
+  String get energyActiveSets => 'Активные подходы';
+
+  @override
+  String get energyYourWeight => 'Ваш вес';
+
+  @override
+  String get energyEstimateHint =>
+      'Общая оценка для вашего текущего веса. После нескольких тренировок с часами она станет персональной. Низкая точность.';
+
+  @override
+  String get demoBadge => 'ДЕМО';
 }

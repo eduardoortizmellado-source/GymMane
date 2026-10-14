@@ -861,5 +861,11 @@
   "logging": "SEGNANDO",
   "placesLabel": "I miei posti",
   "estimatedCalories": "≈ {kcal} kcal",
-  "calorieRangeConfidence": "{low}–{high} kcal · confidenza {confidence}%"
+  "calorieRangeConfidence": "{low}–{high} kcal · confidenza {confidence}%",
+  "energyEstimateTitle": "DISPENDIO ENERGETICO STIMATO",
+  "energyGymPace": "Ritmo reale in palestra · serie e recuperi abituali",
+  "energyActiveSets": "Serie attive",
+  "energyYourWeight": "Il tuo peso",
+  "energyEstimateHint": "Stima generale per il tuo peso attuale. Diventerà personale dopo varie sessioni con l'orologio. Affidabilità bassa.",
+  "demoBadge": "DEMO"
 }

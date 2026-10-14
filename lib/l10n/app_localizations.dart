@@ -4554,6 +4554,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{low}–{high} kcal · {confidence}% confidence'**
   String calorieRangeConfidence(int low, int high, int confidence);
+
+  /// No description provided for @energyEstimateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ENERGY ESTIMATE'**
+  String get energyEstimateTitle;
+
+  /// No description provided for @energyGymPace.
+  ///
+  /// In en, this message translates to:
+  /// **'Typical gym pace · sets and usual rests'**
+  String get energyGymPace;
+
+  /// No description provided for @energyActiveSets.
+  ///
+  /// In en, this message translates to:
+  /// **'Active sets'**
+  String get energyActiveSets;
+
+  /// No description provided for @energyYourWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Your weight'**
+  String get energyYourWeight;
+
+  /// No description provided for @energyEstimateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'General estimate for your current weight. It will become personal after several sessions with the watch. Low confidence.'**
+  String get energyEstimateHint;
+
+  /// No description provided for @demoBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'DEMO'**
+  String get demoBadge;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

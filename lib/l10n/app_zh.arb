@@ -773,5 +773,11 @@
 
   "placesLabel": "我的场所",
   "estimatedCalories": "≈ {kcal} 千卡",
-  "calorieRangeConfidence": "{low}–{high} 千卡 · 置信度 {confidence}%"
+  "calorieRangeConfidence": "{low}–{high} 千卡 · 置信度 {confidence}%",
+  "energyEstimateTitle": "预计能量消耗",
+  "energyGymPace": "正常健身节奏 · 组间休息计入",
+  "energyActiveSets": "有效训练组",
+  "energyYourWeight": "你的体重",
+  "energyEstimateHint": "根据当前体重得出的一般估算。使用手表完成多次训练后将转为个性化估算。置信度较低。",
+  "demoBadge": "演示"
 }

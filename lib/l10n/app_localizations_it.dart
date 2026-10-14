@@ -2556,4 +2556,23 @@ class AppLocalizationsIt extends AppLocalizations {
   String calorieRangeConfidence(int low, int high, int confidence) {
     return '$low–$high kcal · confidenza $confidence%';
   }
+
+  @override
+  String get energyEstimateTitle => 'DISPENDIO ENERGETICO STIMATO';
+
+  @override
+  String get energyGymPace => 'Ritmo reale in palestra · serie e recuperi abituali';
+
+  @override
+  String get energyActiveSets => 'Serie attive';
+
+  @override
+  String get energyYourWeight => 'Il tuo peso';
+
+  @override
+  String get energyEstimateHint =>
+      'Stima generale per il tuo peso attuale. Diventerà personale dopo varie sessioni con l\'orologio. Affidabilità bassa.';
+
+  @override
+  String get demoBadge => 'DEMO';
 }

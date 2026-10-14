@@ -2554,4 +2554,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String calorieRangeConfidence(int low, int high, int confidence) {
     return '$low–$high kcal · $confidence% confidence';
   }
+
+  @override
+  String get energyEstimateTitle => 'ENERGY ESTIMATE';
+
+  @override
+  String get energyGymPace => 'Typical gym pace · sets and usual rests';
+
+  @override
+  String get energyActiveSets => 'Active sets';
+
+  @override
+  String get energyYourWeight => 'Your weight';
+
+  @override
+  String get energyEstimateHint =>
+      'General estimate for your current weight. It will become personal after several sessions with the watch. Low confidence.';
+
+  @override
+  String get demoBadge => 'DEMO';
 }

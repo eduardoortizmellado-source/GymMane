@@ -2442,4 +2442,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String calorieRangeConfidence(int low, int high, int confidence) {
     return '$low–$high 千卡 · 置信度 $confidence%';
   }
+
+  @override
+  String get energyEstimateTitle => '预计能量消耗';
+
+  @override
+  String get energyGymPace => '正常健身节奏 · 组间休息计入';
+
+  @override
+  String get energyActiveSets => '有效训练组';
+
+  @override
+  String get energyYourWeight => '你的体重';
+
+  @override
+  String get energyEstimateHint => '根据当前体重得出的一般估算。使用手表完成多次训练后将转为个性化估算。置信度较低。';
+
+  @override
+  String get demoBadge => '演示';
 }

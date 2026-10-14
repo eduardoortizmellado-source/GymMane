@@ -146,6 +146,10 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                     ],
                   ]),
                   const SizedBox(height: 20),
+                  if (ex.id == 'EIeI8Vf') ...[
+                    _energyEstimateDemo(gc),
+                    const SizedBox(height: 20),
+                  ],
                   const StopwatchCard(),
                   const SizedBox(height: 20),
                   if (pr != null) ...[
@@ -264,6 +268,97 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           for (final alt in fit.alternativesHere(ex, 3)) _similarRow(gc, alt),
         ],
       ),
+    );
+  }
+
+  Widget _energyEstimateDemo(GymColors gc) {
+    final weight = fit.profile.weightKg;
+    int activeKcal(double met) => ((met - 1) * 3.5 * weight / 200 * 60 / 5).round() * 5;
+    final gymLow = activeKcal(3);
+    final gymHigh = activeKcal(4.5);
+    final setLow = activeKcal(4.5);
+    final setHigh = activeKcal(6);
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: gc.bgRaised,
+        border: Border.all(color: gc.ember.withValues(alpha: 0.32)),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(color: gc.emberSoft, shape: BoxShape.circle),
+                child: Icon(PhosphorIconsFill.fire, size: 17, color: gc.ember),
+              ),
+              const SizedBox(width: 11),
+              Expanded(child: _cardLabel(gc, t.energyEstimateTitle)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                decoration: BoxDecoration(color: gc.emberSoft, borderRadius: BorderRadius.circular(100)),
+                child: Text(
+                  t.demoBadge,
+                  style: AppTheme.f(9, weight: FontWeight.w800, color: gc.ember, letterSpacing: 1.1),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '$gymLow–$gymHigh kcal/h',
+            style: AppTheme.d(30, weight: FontWeight.w800, color: gc.text, height: 1),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            t.energyGymPace,
+            style: AppTheme.f(12.5, weight: FontWeight.w600, color: gc.textSecondary),
+          ),
+          const SizedBox(height: 16),
+          Container(height: 1, color: gc.border.withValues(alpha: 0.6)),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(child: _energyMetric(gc, t.energyActiveSets, '$setLow–$setHigh kcal/h')),
+              Container(width: 1, height: 42, color: gc.border.withValues(alpha: 0.6)),
+              const SizedBox(width: 16),
+              Expanded(child: _energyMetric(gc, t.energyYourWeight, fit.weightLabel(weight))),
+            ],
+          ),
+          const SizedBox(height: 15),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(PhosphorIconsRegular.info, size: 14, color: gc.textTertiary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  t.energyEstimateHint,
+                  style: AppTheme.f(11, weight: FontWeight.w500, color: gc.textTertiary, height: 1.4),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _energyMetric(GymColors gc, String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: AppTheme.f(9, weight: FontWeight.w700, color: gc.textTertiary, letterSpacing: 1),
+        ),
+        const SizedBox(height: 5),
+        Text(value, style: AppTheme.d(15, weight: FontWeight.w700, color: gc.text)),
+      ],
     );
   }
 

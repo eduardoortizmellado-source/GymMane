@@ -882,5 +882,11 @@
   "estimatedCalories": "≈ {kcal} kcal",
   "@estimatedCalories": {"placeholders": {"kcal": {"type": "int"}}},
   "calorieRangeConfidence": "{low}–{high} kcal · {confidence}% confidence",
-  "@calorieRangeConfidence": {"placeholders": {"low": {"type": "int"}, "high": {"type": "int"}, "confidence": {"type": "int"}}}
+  "@calorieRangeConfidence": {"placeholders": {"low": {"type": "int"}, "high": {"type": "int"}, "confidence": {"type": "int"}}},
+  "energyEstimateTitle": "ENERGY ESTIMATE",
+  "energyGymPace": "Typical gym pace · sets and usual rests",
+  "energyActiveSets": "Active sets",
+  "energyYourWeight": "Your weight",
+  "energyEstimateHint": "General estimate for your current weight. It will become personal after several sessions with the watch. Low confidence.",
+  "demoBadge": "DEMO"
 }

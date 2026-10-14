@@ -802,5 +802,11 @@
   "logging": "ЗАПИСЬ",
   "placesLabel": "Мои места",
   "estimatedCalories": "≈ {kcal} ккал",
-  "calorieRangeConfidence": "{low}–{high} ккал · точность {confidence}%"
+  "calorieRangeConfidence": "{low}–{high} ккал · точность {confidence}%",
+  "energyEstimateTitle": "ОЦЕНКА ЭНЕРГОЗАТРАТ",
+  "energyGymPace": "Обычный темп в зале · подходы и отдых",
+  "energyActiveSets": "Активные подходы",
+  "energyYourWeight": "Ваш вес",
+  "energyEstimateHint": "Общая оценка для вашего текущего веса. После нескольких тренировок с часами она станет персональной. Низкая точность.",
+  "demoBadge": "ДЕМО"
 }

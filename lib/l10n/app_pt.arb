@@ -773,5 +773,11 @@
 
   "placesLabel": "Meus locais",
   "estimatedCalories": "≈ {kcal} kcal",
-  "calorieRangeConfidence": "{low}–{high} kcal · {confidence}% confiança"
+  "calorieRangeConfidence": "{low}–{high} kcal · {confidence}% confiança",
+  "energyEstimateTitle": "GASTO ENERGÉTICO ESTIMADO",
+  "energyGymPace": "Ritmo real de academia · séries e descansos habituais",
+  "energyActiveSets": "Séries ativas",
+  "energyYourWeight": "Seu peso",
+  "energyEstimateHint": "Estimativa geral para seu peso atual. Ficará personalizada após várias sessões com o relógio. Confiança baixa.",
+  "demoBadge": "DEMO"
 }
