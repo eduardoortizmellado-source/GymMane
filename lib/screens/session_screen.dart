@@ -98,9 +98,17 @@ class SessionScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 4),
-            Text(
-              ex == null ? '' : t.catalogName(ex.id, ex.name),
-              style: AppTheme.f(26, weight: FontWeight.w700, color: gc.text),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    ex == null ? '' : t.catalogName(ex.id, ex.name),
+                    style: AppTheme.f(26, weight: FontWeight.w700, color: gc.text),
+                  ),
+                ),
+                if (ex != null) ...[const SizedBox(width: 10), _progressionButton(context, gc, ex.id)],
+              ],
             ),
             const SizedBox(height: 8),
             Container(
@@ -312,6 +320,145 @@ class SessionScreen extends StatelessWidget {
     );
   }
 
+  Widget _progressionButton(BuildContext context, GymColors gc, String exerciseId) {
+    final enabled = fit.hasProgress(exerciseId);
+    return Semantics(
+      button: true,
+      label: t.autoProgress,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _showProgressionSheet(context, exerciseId),
+        child: Container(
+          width: 44,
+          height: 44,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: enabled ? gc.emberSoft : gc.bgRaised,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: enabled ? gc.ember.withValues(alpha: 0.45) : gc.border),
+          ),
+          child: Icon(PhosphorIconsRegular.trendUp, size: 20, color: enabled ? gc.ember : gc.textSecondary),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showProgressionSheet(BuildContext context, String exerciseId) async {
+    final gc = context.gc;
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheet) {
+          final enabled = fit.hasProgress(exerciseId);
+          final selected = fit.toDisplayWeight(fit.progressFor(exerciseId) ?? 0);
+          const steps = <double>[1.25, 2.5, 5];
+          final hintStep = enabled
+              ? fit.weightLabel(fit.progressFor(exerciseId) ?? 0)
+              : fit.weightLabel(fit.fromDisplayWeight(2.5));
+          return SafeArea(
+            top: false,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 22),
+              decoration: BoxDecoration(
+                color: gc.bgRaised,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SheetHandle(),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(color: gc.emberSoft, shape: BoxShape.circle),
+                        child: Icon(PhosphorIconsRegular.trendUp, size: 20, color: gc.ember),
+                      ),
+                      const SizedBox(width: 13),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              t.autoProgress,
+                              style: AppTheme.f(18, weight: FontWeight.w700, color: gc.text),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              t.autoProgressHint(hintStep),
+                              style: AppTheme.f(12, weight: FontWeight.w500, color: gc.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch.adaptive(
+                        value: enabled,
+                        activeTrackColor: gc.ember,
+                        onChanged: (_) => setSheet(() => fit.toggleProgress(exerciseId)),
+                      ),
+                    ],
+                  ),
+                  if (enabled) ...[
+                    const SizedBox(height: 20),
+                    Text(
+                      t.weightLabel.toUpperCase(),
+                      style: AppTheme.f(
+                        10,
+                        weight: FontWeight.w700,
+                        color: gc.textTertiary,
+                        letterSpacing: 1.3,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        for (var i = 0; i < steps.length; i++) ...[
+                          if (i > 0) const SizedBox(width: 8),
+                          Expanded(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => setSheet(() => fit.setProgressStep(exerciseId, steps[i])),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 13),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: (selected - steps[i]).abs() < 0.01 ? gc.emberSoft : gc.bgRaised2,
+                                  borderRadius: BorderRadius.circular(13),
+                                  border: Border.all(
+                                    color: (selected - steps[i]).abs() < 0.01
+                                        ? gc.ember.withValues(alpha: 0.55)
+                                        : gc.border,
+                                  ),
+                                ),
+                                child: Text(
+                                  fit.weightLabel(fit.fromDisplayWeight(steps[i])),
+                                  style: AppTheme.f(
+                                    14,
+                                    weight: FontWeight.w700,
+                                    color: (selected - steps[i]).abs() < 0.01 ? gc.ember : gc.text,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _restNudge(GymColors gc, String glyph, String semantic, VoidCallback onTap) {
     return Semantics(
       button: true,
@@ -357,10 +504,10 @@ class SessionScreen extends StatelessWidget {
     final s = AppTheme.f(11, weight: FontWeight.w600, color: gc.textSecondary, letterSpacing: 0.4);
 
     Widget label(String t) => FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.center,
-          child: Text(t, maxLines: 1, softWrap: false, style: s),
-        );
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.center,
+      child: Text(t, maxLines: 1, softWrap: false, style: s),
+    );
     return Row(
       children: [
         SizedBox(width: _numCol, child: label(t.setCol)),
@@ -473,8 +620,8 @@ class SessionScreen extends StatelessWidget {
         color: st.done
             ? gc.sageSoft
             : active
-                ? gc.emberSoft
-                : Colors.transparent,
+            ? gc.emberSoft
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -536,8 +683,8 @@ class SessionScreen extends StatelessWidget {
             label: st.done
                 ? t.markSet(j + 1)
                 : active
-                    ? t.finishSet
-                    : t.startSet,
+                ? t.finishSet
+                : t.startSet,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
@@ -560,22 +707,23 @@ class SessionScreen extends StatelessWidget {
                       color: st.done
                           ? gc.sage
                           : active
-                              ? gc.ember
-                              : Colors.transparent,
+                          ? gc.ember
+                          : Colors.transparent,
                       shape: BoxShape.circle,
                       border: Border.all(
-                          color: st.done
-                              ? gc.sage
-                              : active
-                                  ? gc.ember
-                                  : gc.textTertiary,
-                          width: 2),
+                        color: st.done
+                            ? gc.sage
+                            : active
+                            ? gc.ember
+                            : gc.textTertiary,
+                        width: 2,
+                      ),
                     ),
                     child: st.done
                         ? Center(child: SvgPathIcon(Ic.checkBold, size: 14, color: Colors.white))
                         : active
-                            ? Icon(PhosphorIconsFill.stop, size: 12, color: gc.onEmber)
-                            : Icon(PhosphorIconsFill.play, size: 12, color: gc.textTertiary),
+                        ? Icon(PhosphorIconsFill.stop, size: 12, color: gc.onEmber)
+                        : Icon(PhosphorIconsFill.play, size: 12, color: gc.textTertiary),
                   ),
                 ),
               ),
@@ -646,21 +794,21 @@ class SessionScreen extends StatelessWidget {
   }
 
   Widget _dashedAction(GymColors gc, String label, VoidCallback onTap) => GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              label,
-              maxLines: 1,
-              style: AppTheme.f(13, weight: FontWeight.w600, color: gc.textSecondary, letterSpacing: 0.4),
-            ),
-          ),
+    behavior: HitTestBehavior.opaque,
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          label,
+          maxLines: 1,
+          style: AppTheme.f(13, weight: FontWeight.w600, color: gc.textSecondary, letterSpacing: 0.4),
         ),
-      );
+      ),
+    ),
+  );
 
   Widget _plateRow(BuildContext context, GymColors gc, SessionExercise ex) {
     final exercise = fit.exerciseById(ex.id);
@@ -699,18 +847,18 @@ class SessionScreen extends StatelessWidget {
   }
 
   Color _kindColor(GymColors gc, SetKind kind) => switch (kind) {
-        SetKind.warmup => gc.warn,
-        SetKind.drop => gc.info,
-        SetKind.failure => gc.danger,
-        SetKind.normal => gc.text,
-      };
+    SetKind.warmup => gc.warn,
+    SetKind.drop => gc.info,
+    SetKind.failure => gc.danger,
+    SetKind.normal => gc.text,
+  };
 
   String _kindLabel(SetKind kind) => switch (kind) {
-        SetKind.warmup => t.setTypeWarmup,
-        SetKind.drop => t.setTypeDrop,
-        SetKind.failure => t.setTypeFailure,
-        SetKind.normal => t.setTypeNormal,
-      };
+    SetKind.warmup => t.setTypeWarmup,
+    SetKind.drop => t.setTypeDrop,
+    SetKind.failure => t.setTypeFailure,
+    SetKind.normal => t.setTypeNormal,
+  };
 
   Widget _setBadge(GymColors gc, int exIdx, int j, SessionSet st) {
     final sets = fit.session?.exercises[exIdx].sets ?? const <SessionSet>[];
@@ -874,26 +1022,26 @@ class SessionScreen extends StatelessWidget {
     required void Function(BuildContext) onEdit,
   }) {
     Widget b(String g, String semantic, VoidCallback t) => Semantics(
-          button: true,
-          label: semantic,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: t,
-            child: SizedBox(
-              width: 34,
-              height: 44,
-              child: Center(
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(color: gc.bgRaised2, borderRadius: BorderRadius.circular(8)),
-                  alignment: Alignment.center,
-                  child: Text(g, style: TextStyle(color: gc.text, fontSize: 17, height: 1)),
-                ),
-              ),
+      button: true,
+      label: semantic,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: t,
+        child: SizedBox(
+          width: 34,
+          height: 44,
+          child: Center(
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(color: gc.bgRaised2, borderRadius: BorderRadius.circular(8)),
+              alignment: Alignment.center,
+              child: Text(g, style: TextStyle(color: gc.text, fontSize: 17, height: 1)),
             ),
           ),
-        );
+        ),
+      ),
+    );
     return Builder(
       builder: (context) => FittedBox(
         fit: BoxFit.scaleDown,
@@ -941,9 +1089,7 @@ class SessionScreen extends StatelessWidget {
       final active = st.status == SessionSetStatus.active;
       return PrimaryButton(
         label: active ? t.finishSet : t.startSet,
-        onTap: () => active
-            ? fit.finishSessionSet(exIdx, pending)
-            : fit.startSessionSet(exIdx, pending),
+        onTap: () => active ? fit.finishSessionSet(exIdx, pending) : fit.startSessionSet(exIdx, pending),
         height: 56,
       );
     }
@@ -967,19 +1113,19 @@ class SessionScreen extends StatelessWidget {
   }
 
   Widget _textAction(GymColors gc, String label, VoidCallback onTap) => Semantics(
-        button: true,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Text(
-              label,
-              style: AppTheme.f(12, weight: FontWeight.w600, color: gc.textTertiary),
-            ),
-          ),
+    button: true,
+    child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Text(
+          label,
+          style: AppTheme.f(12, weight: FontWeight.w600, color: gc.textTertiary),
         ),
-      );
+      ),
+    ),
+  );
 
   Widget _circleBtn(GymColors gc, List<IconPath> icon, VoidCallback onTap, {bool enabled = true}) {
     return Semantics(

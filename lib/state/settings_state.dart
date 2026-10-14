@@ -25,8 +25,7 @@ mixin SettingsState on FitCore, ToolsState, LibraryState {
 
   Locale get locale => Locale(language);
 
-  void _adoptDeviceLanguage() =>
-      _applyLanguage(PlatformDispatcher.instance.locale.languageCode);
+  void _adoptDeviceLanguage() => _applyLanguage(PlatformDispatcher.instance.locale.languageCode);
 
   void _applyLanguage(String code) {
     setAppLanguage(code);
@@ -274,6 +273,16 @@ mixin SettingsState on FitCore, ToolsState, LibraryState {
     notifyListeners();
   }
 
+  void setProgressStep(String exerciseId, double displayStep) {
+    if (displayStep <= 0) {
+      progressStep.remove(exerciseId);
+    } else {
+      progressStep[exerciseId] = fromDisplayWeight(displayStep);
+    }
+    _persist();
+    notifyListeners();
+  }
+
   void toggleFocusCard() {
     showFocus = !showFocus;
     _persist();
@@ -344,6 +353,5 @@ mixin SettingsState on FitCore, ToolsState, LibraryState {
     notifyListeners();
   }
 
-  Future<void> openNotificationSettings() =>
-      AppSettings.openAppSettings(type: AppSettingsType.notification);
+  Future<void> openNotificationSettings() => AppSettings.openAppSettings(type: AppSettingsType.notification);
 }
