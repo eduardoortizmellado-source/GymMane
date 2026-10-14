@@ -6,6 +6,7 @@ import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../l10n/l10n.dart';
 import '../models/progress_shot.dart';
 import '../models/workout.dart';
+import '../services/health_store.dart';
 import '../services/media_store.dart';
 import '../state/fit_state.dart';
 import '../theme/app_colors.dart';
@@ -353,10 +354,7 @@ class ProgressScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      t.setCount(session.setCount),
-                      style: AppTheme.f(11.5, weight: FontWeight.w600, color: gc.textTertiary),
-                    ),
+                    _SessionEnergy(session: session, includeSets: true),
                     const SizedBox(width: 5),
                     Icon(PhosphorIconsRegular.caretRight, size: 13, color: gc.textTertiary),
                   ],
@@ -1114,9 +1112,16 @@ class _DaySheet extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              '${t.setCount(s.setCount)} · ${fit.volumeLabel(s.volume)}',
-              style: AppTheme.s(11, weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 1),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${t.setCount(s.setCount)} · ${fit.volumeLabel(s.volume)}',
+                  style: AppTheme.s(11, weight: FontWeight.w600, color: gc.textTertiary, letterSpacing: 1),
+                ),
+                const SizedBox(height: 4),
+                _SessionEnergy(session: s),
+              ],
             ),
           ),
           if (!fit.isSessionActive)
@@ -1337,6 +1342,54 @@ class _LogBodyweightSheetState extends State<_LogBodyweightSheet> {
         alignment: Alignment.center,
         child: Text(glyph, style: TextStyle(color: gc.text, fontSize: 26, height: 1)),
       ),
+    );
+  }
+}
+
+class _SessionEnergy extends StatelessWidget {
+  const _SessionEnergy({required this.session, this.includeSets = false});
+
+  final LoggedSession session;
+  final bool includeSets;
+
+  @override
+  Widget build(BuildContext context) {
+    final gc = context.gc;
+    return FutureBuilder(
+      future: HealthStore.instance.calorieEstimateForSession(session.telemetryId),
+      builder: (context, snapshot) {
+        final estimate = snapshot.data;
+        if (estimate == null) {
+          return includeSets
+              ? Text(
+                  t.setCount(session.setCount),
+                  style: AppTheme.f(11.5, weight: FontWeight.w600, color: gc.textTertiary),
+                )
+              : const SizedBox.shrink();
+        }
+        final main = t.estimatedCalories(estimate.activeKcal.round());
+        final range = t.calorieRangeConfidence(
+          estimate.lowKcal.round(),
+          estimate.highKcal.round(),
+          (estimate.confidence * 100).round(),
+        );
+        return Column(
+          crossAxisAlignment: includeSets ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            Text(
+              includeSets ? '${t.setCount(session.setCount)} · $main' : main,
+              maxLines: 1,
+              style: AppTheme.f(11.5, weight: FontWeight.w700, color: gc.ember),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              range,
+              maxLines: 1,
+              style: AppTheme.s(9, weight: FontWeight.w500, color: gc.textTertiary),
+            ),
+          ],
+        );
+      },
     );
   }
 }

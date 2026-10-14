@@ -2623,4 +2623,14 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get placesLabel => 'Мои места';
+
+  @override
+  String estimatedCalories(int kcal) {
+    return '≈ $kcal ккал';
+  }
+
+  @override
+  String calorieRangeConfidence(int low, int high, int confidence) {
+    return '$low–$high ккал · точность $confidence%';
+  }
 }

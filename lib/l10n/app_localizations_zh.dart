@@ -2432,4 +2432,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get placesLabel => '我的场所';
+
+  @override
+  String estimatedCalories(int kcal) {
+    return '≈ $kcal 千卡';
+  }
+
+  @override
+  String calorieRangeConfidence(int low, int high, int confidence) {
+    return '$low–$high 千卡 · 置信度 $confidence%';
+  }
 }

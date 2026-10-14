@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
 import '../models/body_composition.dart';
+import '../models/calorie_estimate.dart';
 import '../models/telemetry.dart';
 import 'calorie_engine.dart';
 
@@ -122,19 +123,58 @@ class HealthStore {
   Future<List<BodyCompositionEntry>> compositions() async {
     final rows = await db.query('body_composition', orderBy: 'measured_at DESC');
     return rows
-        .map((row) => BodyCompositionEntry.fromJson(
-            (jsonDecode(row['payload'] as String) as Map).cast<String, dynamic>()))
+        .map(
+          (row) => BodyCompositionEntry.fromJson(
+            (jsonDecode(row['payload'] as String) as Map).cast<String, dynamic>(),
+          ),
+        )
         .toList();
+  }
+
+  Future<CalorieEstimate?> calorieEstimateForSession(String? sessionId) async {
+    if (sessionId == null || sessionId.isEmpty) return null;
+    final database = _db;
+    if (database == null) return null;
+    final rows = await database.query(
+      'telemetry_session',
+      columns: [
+        'watch_calories',
+        'algorithm_version',
+        'estimate_low',
+        'estimate_mid',
+        'estimate_high',
+        'confidence',
+      ],
+      where: 'id = ? AND status = ?',
+      whereArgs: [sessionId, 'complete'],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    final row = rows.single;
+    final mid = (row['estimate_mid'] as num?)?.toDouble();
+    final low = (row['estimate_low'] as num?)?.toDouble();
+    final high = (row['estimate_high'] as num?)?.toDouble();
+    final confidence = (row['confidence'] as num?)?.toDouble();
+    if (mid == null || low == null || high == null || confidence == null) return null;
+    return CalorieEstimate(
+      activeKcal: mid,
+      lowKcal: low,
+      highKcal: high,
+      confidence: confidence,
+      version: row['algorithm_version'] as String? ?? CalorieEngine.version,
+      sources: const [],
+      watchTotalKcal: (row['watch_calories'] as num?)?.toDouble(),
+    );
   }
 
   Future<void> startTelemetry(String id, DateTime at) async {
     final database = _db;
     if (database == null) return;
-    await database.insert(
-      'telemetry_session',
-      {'id': id, 'started_at': at.millisecondsSinceEpoch, 'status': 'recording'},
-      conflictAlgorithm: ConflictAlgorithm.ignore,
-    );
+    await database.insert('telemetry_session', {
+      'id': id,
+      'started_at': at.millisecondsSinceEpoch,
+      'status': 'recording',
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
   Future<void> finishTelemetry(
@@ -146,18 +186,24 @@ class HealthStore {
   }) async {
     final database = _db;
     if (database == null) return;
-    final aggregates = await database.rawQuery('''
+    final aggregates = await database.rawQuery(
+      '''
       SELECT COUNT(*) AS samples,
              AVG(heart_rate) AS average_hr,
              COUNT(heart_rate) AS hr_samples,
              MAX(calories_total) AS watch_calories,
              AVG(accel_variance) AS motion
       FROM sensor_sample WHERE session_id = ?
-    ''', [id]);
-    final phaseRows = await database.rawQuery('''
+    ''',
+      [id],
+    );
+    final phaseRows = await database.rawQuery(
+      '''
       SELECT COALESCE(SUM(ended_at - started_at), 0) AS active_ms
       FROM workout_phase WHERE session_id = ? AND kind = 'set'
-    ''', [id]);
+    ''',
+      [id],
+    );
     final row = aggregates.single;
     final totalSamples = (row['samples'] as num?)?.toInt() ?? 0;
     final hrSamples = (row['hr_samples'] as num?)?.toInt() ?? 0;
@@ -174,17 +220,19 @@ class HealthStore {
     final durationSeconds = at.difference(startedAt).inSeconds.clamp(0, 24 * 60 * 60);
     final activeSeconds = (((phaseRows.single['active_ms'] as num?)?.toDouble() ?? 0) / 1000).round();
     final storedWatchCalories = watchCalories ?? (row['watch_calories'] as num?)?.toDouble();
-    final estimate = const CalorieEngine().estimate(CalorieInputs(
-      weightKg: weightKg,
-      durationSeconds: durationSeconds,
-      activeSeconds: activeSeconds,
-      watchTotalKcal: storedWatchCalories,
-      bmrKcalPerDay: bmrKcalPerDay,
-      averageHeartRate: (row['average_hr'] as num?)?.toDouble(),
-      heartRateCoverage: totalSamples == 0 ? 0 : hrSamples / totalSamples,
-      motionCoverage: totalSamples == 0 ? 0 : 1,
-      motionIntensity: (((row['motion'] as num?)?.toDouble() ?? 0) / 6).clamp(0, 1),
-    ));
+    final estimate = const CalorieEngine().estimate(
+      CalorieInputs(
+        weightKg: weightKg,
+        durationSeconds: durationSeconds,
+        activeSeconds: activeSeconds,
+        watchTotalKcal: storedWatchCalories,
+        bmrKcalPerDay: bmrKcalPerDay,
+        averageHeartRate: (row['average_hr'] as num?)?.toDouble(),
+        heartRateCoverage: totalSamples == 0 ? 0 : hrSamples / totalSamples,
+        motionCoverage: totalSamples == 0 ? 0 : 1,
+        motionIntensity: (((row['motion'] as num?)?.toDouble() ?? 0) / 6).clamp(0, 1),
+      ),
+    );
     await database.update(
       'telemetry_session',
       {
@@ -207,20 +255,16 @@ class HealthStore {
     if (database == null) return;
     final batch = database.batch();
     for (final s in samples) {
-      batch.insert(
-        'sensor_sample',
-        {
-          'session_id': sessionId,
-          'at': s.at.millisecondsSinceEpoch,
-          'heart_rate': s.heartRate,
-          'heart_accuracy': s.heartRateAccuracy,
-          'calories_total': s.totalCalories,
-          'accel_rms': s.accelRms,
-          'accel_variance': s.accelVariance,
-          'gyro_rms': s.gyroRms,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      batch.insert('sensor_sample', {
+        'session_id': sessionId,
+        'at': s.at.millisecondsSinceEpoch,
+        'heart_rate': s.heartRate,
+        'heart_accuracy': s.heartRateAccuracy,
+        'calories_total': s.totalCalories,
+        'accel_rms': s.accelRms,
+        'accel_variance': s.accelVariance,
+        'gyro_rms': s.gyroRms,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);
   }
@@ -228,19 +272,15 @@ class HealthStore {
   Future<void> savePhase(WorkoutPhase phase) async {
     final database = _db;
     if (database == null) return;
-    await database.insert(
-      'workout_phase',
-      {
-        'id': phase.id,
-        'session_id': phase.sessionId,
-        'kind': phase.kind.name,
-        'started_at': phase.startedAt.millisecondsSinceEpoch,
-        'ended_at': phase.endedAt?.millisecondsSinceEpoch,
-        'exercise_id': phase.exerciseId,
-        'set_id': phase.setId,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await database.insert('workout_phase', {
+      'id': phase.id,
+      'session_id': phase.sessionId,
+      'kind': phase.kind.name,
+      'started_at': phase.startedAt.millisecondsSinceEpoch,
+      'ended_at': phase.endedAt?.millisecondsSinceEpoch,
+      'exercise_id': phase.exerciseId,
+      'set_id': phase.setId,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> deletePhaseForSet(String sessionId, String setId) async {

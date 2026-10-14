@@ -2544,4 +2544,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get placesLabel => 'My places';
+
+  @override
+  String estimatedCalories(int kcal) {
+    return '≈ $kcal kcal';
+  }
+
+  @override
+  String calorieRangeConfidence(int low, int high, int confidence) {
+    return '$low–$high kcal · $confidence% confidence';
+  }
 }

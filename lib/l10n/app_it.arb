@@ -859,5 +859,7 @@
   "plannedRoutine": "PREVISTA",
   "logWorkoutAction": "SEGNA UN ALLENAMENTO",
   "logging": "SEGNANDO",
-  "placesLabel": "I miei posti"
+  "placesLabel": "I miei posti",
+  "estimatedCalories": "≈ {kcal} kcal",
+  "calorieRangeConfidence": "{low}–{high} kcal · confidenza {confidence}%"
 }

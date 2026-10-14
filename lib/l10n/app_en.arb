@@ -878,5 +878,9 @@
   "logWorkoutAction": "LOG A WORKOUT",
   "logging": "LOGGING",
 
-  "placesLabel": "My places"
+  "placesLabel": "My places",
+  "estimatedCalories": "≈ {kcal} kcal",
+  "@estimatedCalories": {"placeholders": {"kcal": {"type": "int"}}},
+  "calorieRangeConfidence": "{low}–{high} kcal · {confidence}% confidence",
+  "@calorieRangeConfidence": {"placeholders": {"low": {"type": "int"}, "high": {"type": "int"}, "confidence": {"type": "int"}}}
 }

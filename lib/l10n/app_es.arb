@@ -819,5 +819,7 @@
   "logWorkoutAction": "APUNTAR UN ENTRENO",
   "logging": "APUNTANDO",
 
-  "placesLabel": "Mis sitios"
+  "placesLabel": "Mis sitios",
+  "estimatedCalories": "≈ {kcal} kcal",
+  "calorieRangeConfidence": "{low}–{high} kcal · {confidence}% confianza"
 }

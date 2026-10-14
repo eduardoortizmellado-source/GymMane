@@ -800,5 +800,7 @@
   "plannedRoutine": "ЗАПЛАНИРОВАНО",
   "logWorkoutAction": "ЗАПИСАТЬ ТРЕНИРОВКУ",
   "logging": "ЗАПИСЬ",
-  "placesLabel": "Мои места"
+  "placesLabel": "Мои места",
+  "estimatedCalories": "≈ {kcal} ккал",
+  "calorieRangeConfidence": "{low}–{high} ккал · точность {confidence}%"
 }

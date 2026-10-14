@@ -771,5 +771,7 @@
   "logWorkoutAction": "记录一次训练",
   "logging": "记录中",
 
-  "placesLabel": "我的场所"
+  "placesLabel": "我的场所",
+  "estimatedCalories": "≈ {kcal} 千卡",
+  "calorieRangeConfidence": "{low}–{high} 千卡 · 置信度 {confidence}%"
 }

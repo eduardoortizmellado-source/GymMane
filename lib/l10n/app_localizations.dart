@@ -4542,6 +4542,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'My places'**
   String get placesLabel;
+
+  /// No description provided for @estimatedCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'≈ {kcal} kcal'**
+  String estimatedCalories(int kcal);
+
+  /// No description provided for @calorieRangeConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'{low}–{high} kcal · {confidence}% confidence'**
+  String calorieRangeConfidence(int low, int high, int confidence);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

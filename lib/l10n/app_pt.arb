@@ -771,5 +771,7 @@
   "logWorkoutAction": "REGISTRAR UM TREINO",
   "logging": "REGISTRANDO",
 
-  "placesLabel": "Meus locais"
+  "placesLabel": "Meus locais",
+  "estimatedCalories": "≈ {kcal} kcal",
+  "calorieRangeConfidence": "{low}–{high} kcal · {confidence}% confiança"
 }
