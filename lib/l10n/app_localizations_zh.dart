@@ -2468,7 +2468,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maxHeartRate => '最高心率';
 
   @override
-  String get sensorCoverage => '手表覆盖率';
+  String get sensorCoverage => '心率数据覆盖率';
 
   @override
   String get workRest => '训练 / 休息';

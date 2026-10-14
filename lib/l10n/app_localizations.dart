@@ -4606,7 +4606,7 @@ abstract class AppLocalizations {
   /// No description provided for @sensorCoverage.
   ///
   /// In en, this message translates to:
-  /// **'WATCH COVERAGE'**
+  /// **'HEART-RATE DATA COVERAGE'**
   String get sensorCoverage;
 
   /// No description provided for @workRest.

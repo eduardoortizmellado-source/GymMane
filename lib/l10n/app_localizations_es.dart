@@ -2579,7 +2579,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get maxHeartRate => 'FC MÁXIMA';
 
   @override
-  String get sensorCoverage => 'COBERTURA DEL RELOJ';
+  String get sensorCoverage => 'COBERTURA DE DATOS FC';
 
   @override
   String get workRest => 'TRABAJO / DESCANSO';

@@ -782,7 +782,7 @@
   "demoBadge": "DEMO",
   "averageHeartRate": "FC MÉDIA",
   "maxHeartRate": "FC MÁXIMA",
-  "sensorCoverage": "COBERTURA DO RELÓGIO",
+  "sensorCoverage": "COBERTURA DE DADOS FC",
   "workRest": "TRABALHO / DESCANSO",
   "exerciseDetails": "DETALHES DO EXERCÍCIO"
 }

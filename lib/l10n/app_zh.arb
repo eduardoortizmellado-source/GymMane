@@ -782,7 +782,7 @@
   "demoBadge": "演示",
   "averageHeartRate": "平均心率",
   "maxHeartRate": "最高心率",
-  "sensorCoverage": "手表覆盖率",
+  "sensorCoverage": "心率数据覆盖率",
   "workRest": "训练 / 休息",
   "exerciseDetails": "动作详情"
 }

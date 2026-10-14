@@ -891,7 +891,7 @@
   "demoBadge": "DEMO",
   "averageHeartRate": "AVG HEART RATE",
   "maxHeartRate": "MAX HEART RATE",
-  "sensorCoverage": "WATCH COVERAGE",
+  "sensorCoverage": "HEART-RATE DATA COVERAGE",
   "workRest": "WORK / REST",
   "exerciseDetails": "EXERCISE DETAILS"
 }

@@ -811,7 +811,7 @@
   "demoBadge": "ДЕМО",
   "averageHeartRate": "СРЕДНИЙ ПУЛЬС",
   "maxHeartRate": "МАКС. ПУЛЬС",
-  "sensorCoverage": "ПОКРЫТИЕ ЧАСОВ",
+  "sensorCoverage": "ПОКРЫТИЕ ДАННЫХ ПУЛЬСА",
   "workRest": "РАБОТА / ОТДЫХ",
   "exerciseDetails": "ДЕТАЛИ УПРАЖНЕНИЯ"
 }

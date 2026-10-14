@@ -2660,7 +2660,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get maxHeartRate => 'МАКС. ПУЛЬС';
 
   @override
-  String get sensorCoverage => 'ПОКРЫТИЕ ЧАСОВ';
+  String get sensorCoverage => 'ПОКРЫТИЕ ДАННЫХ ПУЛЬСА';
 
   @override
   String get workRest => 'РАБОТА / ОТДЫХ';

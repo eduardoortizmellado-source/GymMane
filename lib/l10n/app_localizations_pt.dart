@@ -2581,7 +2581,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get maxHeartRate => 'FC MÁXIMA';
 
   @override
-  String get sensorCoverage => 'COBERTURA DO RELÓGIO';
+  String get sensorCoverage => 'COBERTURA DE DADOS FC';
 
   @override
   String get workRest => 'TRABALHO / DESCANSO';

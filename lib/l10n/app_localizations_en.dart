@@ -2581,7 +2581,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get maxHeartRate => 'MAX HEART RATE';
 
   @override
-  String get sensorCoverage => 'WATCH COVERAGE';
+  String get sensorCoverage => 'HEART-RATE DATA COVERAGE';
 
   @override
   String get workRest => 'WORK / REST';
