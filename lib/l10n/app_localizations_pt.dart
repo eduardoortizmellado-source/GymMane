@@ -1874,6 +1874,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get autoAdvance => 'Passar ao seguinte sozinho';
 
   @override
+  String get watchHeartRate => 'Medição do relógio';
+
+  @override
+  String get watchHeartRateBalanced => 'Economia';
+
+  @override
+  String get watchHeartRateContinuous => 'Contínua';
+
+  @override
   String get autoAdvanceHint => 'Ao marcar a última série de um exercício, o treino passa ao seguinte.';
 
   @override

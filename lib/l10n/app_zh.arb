@@ -550,6 +550,9 @@
   "focusCard": "今日重点",
 
   "autoAdvance": "自动进入下一个动作",
+  "watchHeartRate": "手表测量",
+  "watchHeartRateBalanced": "省电",
+  "watchHeartRateContinuous": "持续",
   "autoAdvanceHint": "勾选一个动作的最后一组后，训练会自动进入下一个动作。",
   "autoProgress": "下次自动加重",
   "autoProgressHint": "完成全部次数后，下次训练自动增加 {w}。",

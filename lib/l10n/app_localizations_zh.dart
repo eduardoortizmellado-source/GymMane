@@ -1798,6 +1798,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get autoAdvance => '自动进入下一个动作';
 
   @override
+  String get watchHeartRate => '手表测量';
+
+  @override
+  String get watchHeartRateBalanced => '省电';
+
+  @override
+  String get watchHeartRateContinuous => '持续';
+
+  @override
   String get autoAdvanceHint => '勾选一个动作的最后一组后，训练会自动进入下一个动作。';
 
   @override

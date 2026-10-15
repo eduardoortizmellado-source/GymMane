@@ -598,6 +598,9 @@
   "focusCard": "El foco de hoy",
 
   "autoAdvance": "Pasar al siguiente solo",
+  "watchHeartRate": "Medición del reloj",
+  "watchHeartRateBalanced": "Ahorro",
+  "watchHeartRateContinuous": "Continua",
   "autoAdvanceHint": "Al marcar la última serie de un ejercicio, el entreno pasa al siguiente.",
   "autoProgress": "Subir el peso solo",
   "autoProgressHint": "Si cumples todas las repes, el siguiente entreno empieza {w} más arriba.",

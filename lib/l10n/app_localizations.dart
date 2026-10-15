@@ -3367,6 +3367,24 @@ abstract class AppLocalizations {
   /// **'Move on automatically'**
   String get autoAdvance;
 
+  /// No description provided for @watchHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch measurement'**
+  String get watchHeartRate;
+
+  /// No description provided for @watchHeartRateBalanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced'**
+  String get watchHeartRateBalanced;
+
+  /// No description provided for @watchHeartRateContinuous.
+  ///
+  /// In en, this message translates to:
+  /// **'Continuous'**
+  String get watchHeartRateContinuous;
+
   /// No description provided for @autoAdvanceHint.
   ///
   /// In en, this message translates to:

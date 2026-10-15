@@ -1871,6 +1871,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get autoAdvance => 'Move on automatically';
 
   @override
+  String get watchHeartRate => 'Watch measurement';
+
+  @override
+  String get watchHeartRateBalanced => 'Balanced';
+
+  @override
+  String get watchHeartRateContinuous => 'Continuous';
+
+  @override
   String get autoAdvanceHint => 'When the last set of an exercise is ticked, the workout moves on.';
 
   @override

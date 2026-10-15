@@ -16,6 +16,7 @@ mixin SettingsState on FitCore, ToolsState, LibraryState {
   bool showFocus = true;
   bool autoAdvance = true;
   bool logRpe = false;
+  bool continuousWatchHeartRate = true;
   int? trainReminderMin;
   bool smartReminder = false;
   bool onboarded = false;
@@ -247,6 +248,12 @@ mixin SettingsState on FitCore, ToolsState, LibraryState {
 
   void toggleAutoAdvance() {
     autoAdvance = !autoAdvance;
+    _persist();
+    notifyListeners();
+  }
+
+  void setContinuousWatchHeartRate(bool continuous) {
+    continuousWatchHeartRate = continuous;
     _persist();
     notifyListeners();
   }

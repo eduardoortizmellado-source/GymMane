@@ -1928,6 +1928,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get autoAdvance => 'Переходить дальше сам';
 
   @override
+  String get watchHeartRate => 'Измерение часами';
+
+  @override
+  String get watchHeartRateBalanced => 'Экономия';
+
+  @override
+  String get watchHeartRateContinuous => 'Постоянно';
+
+  @override
   String get autoAdvanceHint =>
       'Когда отметишь последний подход упражнения, тренировка перейдёт к следующему.';
 

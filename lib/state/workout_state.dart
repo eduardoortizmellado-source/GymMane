@@ -215,7 +215,7 @@ mixin WorkoutState on FitCore, SettingsState, LibraryState, PlacesState, StatsSt
     _startTicking();
     session = s;
     unawaited(HealthStore.instance.startTelemetry(s.id, DateTime.now()));
-    unawaited(WatchBridge.start(s.id));
+    unawaited(WatchBridge.start(s.id, continuousHeartRate: continuousWatchHeartRate));
     _syncWatchPhase('idle');
     route = 'session';
     persistNow();

@@ -18,7 +18,14 @@ class WatchBridge {
     }
   }
 
-  static Future<bool> start(String sessionId) => _send('start', sessionId);
+  static Future<bool> start(String sessionId, {bool continuousHeartRate = true}) => _send(
+    'start',
+    jsonEncode({
+      'protocol': 1,
+      'sessionId': sessionId,
+      'heartRateMode': continuousHeartRate ? 'continuous' : 'balanced',
+    }),
+  );
   static Future<bool> pause(String sessionId) => _send('pause', sessionId);
   static Future<bool> resume(String sessionId) => _send('resume', sessionId);
   static Future<bool> stop(String sessionId) => _send('stop', sessionId);

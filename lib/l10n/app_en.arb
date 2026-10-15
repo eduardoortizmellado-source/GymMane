@@ -646,6 +646,9 @@
   "focusCard": "Today’s focus",
 
   "autoAdvance": "Move on automatically",
+  "watchHeartRate": "Watch measurement",
+  "watchHeartRateBalanced": "Balanced",
+  "watchHeartRateContinuous": "Continuous",
   "autoAdvanceHint": "When the last set of an exercise is ticked, the workout moves on.",
   "autoProgress": "Add weight next time",
   "autoProgressHint": "Hit every rep and the next session starts {w} heavier.",

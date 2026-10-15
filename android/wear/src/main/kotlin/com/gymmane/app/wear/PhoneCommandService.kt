@@ -51,6 +51,8 @@ class PhoneCommandService : WearableListenerService() {
             updateWorkoutState(payload, issuedAt)
             return
         }
+        val startPayload = if (command == "start") decodeStartPayload(payload) else null
+        val sessionId = startPayload?.sessionId ?: payload
         WearUiStateStore.write(this, previous.copy(lastControlAt = issuedAt))
         val capture = Intent(this, WatchCaptureService::class.java).apply {
             action = when (command) {
@@ -60,10 +62,22 @@ class PhoneCommandService : WearableListenerService() {
                 "stop" -> WatchCaptureService.ACTION_STOP
                 else -> return
             }
-            putExtra(WatchCaptureService.EXTRA_SESSION_ID, payload)
+            putExtra(WatchCaptureService.EXTRA_SESSION_ID, sessionId)
+            putExtra(
+                WatchCaptureService.EXTRA_CONTINUOUS_HEART_RATE,
+                startPayload?.continuousHeartRate ?: true,
+            )
         }
         ContextCompat.startForegroundService(this, capture)
     }
+
+    private fun decodeStartPayload(payload: String): StartPayload? = runCatching {
+        val json = JSONObject(payload)
+        StartPayload(
+            sessionId = json.getString("sessionId"),
+            continuousHeartRate = json.optString("heartRateMode", "continuous") == "continuous",
+        )
+    }.getOrNull()
 
     private fun updateWorkoutState(payload: String, issuedAt: Long) {
         runCatching {
@@ -106,5 +120,10 @@ class PhoneCommandService : WearableListenerService() {
         val payload: String,
         val issuedAt: Long,
         val uri: android.net.Uri
+    )
+
+    private data class StartPayload(
+        val sessionId: String,
+        val continuousHeartRate: Boolean,
     )
 }

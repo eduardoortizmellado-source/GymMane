@@ -17,6 +17,7 @@ import androidx.core.app.ServiceCompat
 import androidx.health.services.client.ExerciseUpdateCallback
 import androidx.health.services.client.HealthServices
 import androidx.health.services.client.data.Availability
+import androidx.health.services.client.data.BatchingMode
 import androidx.health.services.client.data.DataPointContainer
 import androidx.health.services.client.data.DataType
 import androidx.health.services.client.data.ExerciseConfig
@@ -90,7 +91,10 @@ class WatchCaptureService : Service(), SensorEventListener {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
-            ACTION_START -> startCapture(intent.getStringExtra(EXTRA_SESSION_ID).orEmpty())
+            ACTION_START -> startCapture(
+                intent.getStringExtra(EXTRA_SESSION_ID).orEmpty(),
+                intent.getBooleanExtra(EXTRA_CONTINUOUS_HEART_RATE, true),
+            )
             ACTION_PAUSE -> pauseCapture(intent.getStringExtra(EXTRA_SESSION_ID).orEmpty())
             ACTION_RESUME -> resumeCapture(intent.getStringExtra(EXTRA_SESSION_ID).orEmpty())
             ACTION_STOP -> stopCapture(intent.getStringExtra(EXTRA_SESSION_ID).orEmpty())
@@ -98,7 +102,7 @@ class WatchCaptureService : Service(), SensorEventListener {
         return START_NOT_STICKY
     }
 
-    private fun startCapture(requestedSessionId: String) {
+    private fun startCapture(requestedSessionId: String, continuousHeartRate: Boolean) {
         if (running) return
         sessionId = requestedSessionId.ifBlank { java.util.UUID.randomUUID().toString() }
         sequence = 0
@@ -131,15 +135,27 @@ class WatchCaptureService : Service(), SensorEventListener {
                 val workout = capabilities.getExerciseTypeCapabilities(ExerciseType.WORKOUT)
                 val requested = setOf(DataType.HEART_RATE_BPM, DataType.CALORIES_TOTAL)
                     .intersect(workout.supportedDataTypes)
+                val batchingModes = if (
+                    continuousHeartRate &&
+                    BatchingMode.HEART_RATE_5_SECONDS in capabilities.supportedBatchingModeOverrides
+                ) {
+                    setOf(BatchingMode.HEART_RATE_5_SECONDS)
+                } else {
+                    emptySet()
+                }
                 exerciseClient.startExercise(
                     ExerciseConfig(
                         exerciseType = ExerciseType.WORKOUT,
                         dataTypes = requested,
                         isAutoPauseAndResumeEnabled = false,
-                        isGpsEnabled = false
+                        isGpsEnabled = false,
+                        batchingModeOverrides = batchingModes,
                     )
                 )
-                writeStatus("started", "ok")
+                writeStatus(
+                    "started",
+                    if (batchingModes.isEmpty()) "balanced" else "continuous_5s",
+                )
                 updateUi(WearMode.ACTIVE)
                 WearHaptics.captureStarted(this@WatchCaptureService)
             } catch (error: Throwable) {
@@ -400,6 +416,7 @@ class WatchCaptureService : Service(), SensorEventListener {
         const val ACTION_RESUME = "com.gymmane.app.wear.RESUME"
         const val ACTION_STOP = "com.gymmane.app.wear.STOP"
         const val EXTRA_SESSION_ID = "sessionId"
+        const val EXTRA_CONTINUOUS_HEART_RATE = "continuousHeartRate"
         private const val CHANNEL_ID = "gymmane_capture"
         private const val NOTIFICATION_ID = 4101
         private const val MOTION_SAMPLE_US = 40_000
